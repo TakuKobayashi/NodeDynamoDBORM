@@ -1,25 +1,31 @@
 const AWS = require('aws-sdk');
 let dynamoClient = new AWS.DynamoDB.DocumentClient();
 
+export interface AWSConfigSettings {
+  accessKeyId: string;
+  secretAccessKey: string;
+  region: string;
+}
+
 export class DynamoORM {
   constructor() {
     dynamoClient = new AWS.DynamoDB.DocumentClient();
   }
 
-  static updateConfig(config = {}) {
+  static updateConfig(config: AWSConfigSettings) {
     AWS.config.update(config);
     dynamoClient = AWS.DynamoDB.DocumentClient();
   }
 
-  async findBy(tablename, filterObject) {
+  async findBy<T>(tablename: string, filterObject): Promise<T> {
     const params = {
       TableName: tablename,
       Key: filterObject,
     };
-    return dynamoClient.get(params).promise();
+    return dynamoClient.get(params).promise() as Promise<T>;
   }
 
-  async findByAll(tablename, filterObject) {
+  async findByAll<T>(tablename: string, filterObject: { [s: string]: any }): Promise<T[]> {
     const keyNames = Object.keys(filterObject);
     const keyConditionExpression = keyNames.map((keyName) => '#' + keyName + ' = ' + ':' + keyName).join(' AND ');
     const expressionAttributeNames = {};
@@ -34,10 +40,10 @@ export class DynamoORM {
       ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
     };
-    return dynamoClient.query(params).promise();
+    return dynamoClient.query(params).promise() as Promise<T[]>;
   }
 
-  async update(tablename, filterObject, updateObject) {
+  async update(tablename: string, filterObject: { [s: string]: any }, updateObject: { [s: string]: any }) {
     let updateExpressionString = 'set ';
     const updateExpressionAttributeValues = {};
     const keys = Object.keys(updateObject);
@@ -59,7 +65,7 @@ export class DynamoORM {
     return dynamoClient.update(params).promise();
   }
 
-  async create(tablename, putObject) {
+  async create(tablename: string, putObject: { [s: string]: any }) {
     const params = {
       TableName: tablename,
       Item: putObject,
@@ -67,7 +73,7 @@ export class DynamoORM {
     return dynamoClient.put(params).promise();
   }
 
-  async delete(tablename, filterObject) {
+  async delete(tablename: string, filterObject: { [s: string]: any }) {
     const params = {
       TableName: tablename,
       Key: filterObject,
@@ -75,23 +81,25 @@ export class DynamoORM {
     return dynamoClient.delete(params).promise();
   }
 
-  async all(tablename) {
-    return dynamoClient.scan({ TableName: tablename }).promise();
+  async all<T>(tablename): Promise<T[]> {
+    return dynamoClient.scan({ TableName: tablename }).promise() as Promise<T[]>;
   }
 
-  where(tablename, filterObjects) {
+  where(tablename, filterObjects): DynamoORMRelation {
     const relation = new DynamoORMRelation();
     return relation.where(tablename, filterObjects);
   }
 }
 
 class DynamoORMRelation {
+  private batchTableFilter: { [s: string]: any } = {};
+
   constructor() {
     dynamoClient = new AWS.DynamoDB.DocumentClient();
     this.clear();
   }
 
-  where(tablename, filterObjects) {
+  where(tablename, filterObjects): DynamoORMRelation {
     if (!this.batchTableFilter[tablename]) {
       this.batchTableFilter[tablename] = {};
     }
