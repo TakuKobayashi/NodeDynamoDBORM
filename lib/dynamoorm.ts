@@ -1,31 +1,29 @@
+import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_placeholders';
+import { APIVersions, ConfigurationOptions } from 'aws-sdk/lib/config';
+
 const AWS = require('aws-sdk');
 let dynamoClient = new AWS.DynamoDB.DocumentClient();
-
-export interface AWSConfigSettings {
-  accessKeyId: string;
-  secretAccessKey: string;
-  region: string;
-}
 
 export class DynamoORM {
   constructor() {
     dynamoClient = new AWS.DynamoDB.DocumentClient();
   }
 
-  static updateConfig(config: AWSConfigSettings) {
+  static updateConfig(config: ConfigurationOptions & ConfigurationServicePlaceholders & APIVersions & {[key: string]: any}, allowUnknownKeys: true) {
     AWS.config.update(config);
-    dynamoClient = AWS.DynamoDB.DocumentClient();
+    dynamoClient = new AWS.DynamoDB.DocumentClient();
   }
 
-  async findBy<T>(tablename: string, filterObject): Promise<T> {
+  async findBy(tablename: string, filterObject: { [s: string]: any }): Promise<Map<string, any>> {
     const params = {
       TableName: tablename,
       Key: filterObject,
     };
-    return dynamoClient.get(params).promise() as Promise<T>;
+    const result = await dynamoClient.get(params).promise();
+    return result.Item as Map<string, any>;
   }
 
-  async findByAll<T>(tablename: string, filterObject: { [s: string]: any }): Promise<T[]> {
+  async findByAll(tablename: string, filterObject: { [s: string]: any }): Promise<Map<string, any>[]> {
     const keyNames = Object.keys(filterObject);
     const keyConditionExpression = keyNames.map((keyName) => '#' + keyName + ' = ' + ':' + keyName).join(' AND ');
     const expressionAttributeNames = {};
@@ -40,10 +38,11 @@ export class DynamoORM {
       ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
     };
-    return dynamoClient.query(params).promise() as Promise<T[]>;
+    const queryResult = await dynamoClient.query(params).promise();
+    return queryResult.Items as Map<string, any>[];
   }
 
-  async update(tablename: string, filterObject: { [s: string]: any }, updateObject: { [s: string]: any }) {
+  async update(tablename: string, filterObject: { [s: string]: any }, updateObject: { [s: string]: any }): Promise<Map<string, any>>{
     let updateExpressionString = 'set ';
     const updateExpressionAttributeValues = {};
     const keys = Object.keys(updateObject);
@@ -60,29 +59,35 @@ export class DynamoORM {
       Key: filterObject,
       UpdateExpression: updateExpressionString,
       ExpressionAttributeValues: updateExpressionAttributeValues,
-      ReturnValues: 'UPDATED_NEW',
+      ReturnValues: 'ALL_NEW',
     };
-    return dynamoClient.update(params).promise();
+    const updateResult = await dynamoClient.update(params).promise();
+    return updateResult.Attributes as Map<string, any>;
   }
 
-  async create(tablename: string, putObject: { [s: string]: any }) {
+  async create(tablename: string, putObject: { [s: string]: any }): Promise<Map<string, any>> {
     const params = {
       TableName: tablename,
       Item: putObject,
+      ReturnValues: "ALL_OLD",
     };
-    return dynamoClient.put(params).promise();
+    const createResult = await dynamoClient.put(params).promise();
+    return Object.assign(createResult.Attributes, putObject) as Map<string, any>;
   }
 
-  async delete(tablename: string, filterObject: { [s: string]: any }) {
+  async delete(tablename: string, filterObject: { [s: string]: any }): Promise<Map<string, any>> {
     const params = {
       TableName: tablename,
       Key: filterObject,
+      ReturnValues: "ALL_OLD",
     };
-    return dynamoClient.delete(params).promise();
+    const deleteResult = await dynamoClient.delete(params).promise();
+    return deleteResult.Attributes as Map<string, any>;
   }
 
-  async all<T>(tablename): Promise<T[]> {
-    return dynamoClient.scan({ TableName: tablename }).promise() as Promise<T[]>;
+  async all(tablename): Promise<Map<string, any>[]> {
+    const scanResult = await dynamoClient.scan({ TableName: tablename }).promise();
+    return scanResult.Items as Map<string, any>[];
   }
 
   where(tablename, filterObjects): DynamoORMRelation {
