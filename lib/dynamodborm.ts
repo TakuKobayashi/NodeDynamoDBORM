@@ -4,12 +4,15 @@ import { APIVersions, ConfigurationOptions } from 'aws-sdk/lib/config';
 const AWS = require('aws-sdk');
 let dynamoClient = new AWS.DynamoDB.DocumentClient();
 
-export class DynamoORM {
+export class DynamoDBORM {
   constructor() {
     dynamoClient = new AWS.DynamoDB.DocumentClient();
   }
 
-  static updateConfig(config: ConfigurationOptions & ConfigurationServicePlaceholders & APIVersions & {[key: string]: any}, allowUnknownKeys: true) {
+  static updateConfig(
+    config: ConfigurationOptions & ConfigurationServicePlaceholders & APIVersions & { [key: string]: any },
+    allowUnknownKeys: true,
+  ) {
     AWS.config.update(config);
     dynamoClient = new AWS.DynamoDB.DocumentClient();
   }
@@ -42,7 +45,7 @@ export class DynamoORM {
     return queryResult.Items as Map<string, any>[];
   }
 
-  async update(tablename: string, filterObject: { [s: string]: any }, updateObject: { [s: string]: any }): Promise<Map<string, any>>{
+  async update(tablename: string, filterObject: { [s: string]: any }, updateObject: { [s: string]: any }): Promise<Map<string, any>> {
     let updateExpressionString = 'set ';
     const updateExpressionAttributeValues = {};
     const keys = Object.keys(updateObject);
@@ -69,7 +72,7 @@ export class DynamoORM {
     const params = {
       TableName: tablename,
       Item: putObject,
-      ReturnValues: "ALL_OLD",
+      ReturnValues: 'ALL_OLD',
     };
     const createResult = await dynamoClient.put(params).promise();
     return Object.assign(createResult.Attributes, putObject) as Map<string, any>;
@@ -79,7 +82,7 @@ export class DynamoORM {
     const params = {
       TableName: tablename,
       Key: filterObject,
-      ReturnValues: "ALL_OLD",
+      ReturnValues: 'ALL_OLD',
     };
     const deleteResult = await dynamoClient.delete(params).promise();
     return deleteResult.Attributes as Map<string, any>;
@@ -88,63 +91,5 @@ export class DynamoORM {
   async all(tablename): Promise<Map<string, any>[]> {
     const scanResult = await dynamoClient.scan({ TableName: tablename }).promise();
     return scanResult.Items as Map<string, any>[];
-  }
-
-  where(tablename, filterObjects): DynamoORMRelation {
-    const relation = new DynamoORMRelation();
-    return relation.where(tablename, filterObjects);
-  }
-}
-
-class DynamoORMRelation {
-  private batchTableFilter: { [s: string]: any } = {};
-
-  constructor() {
-    dynamoClient = new AWS.DynamoDB.DocumentClient();
-    this.clear();
-  }
-
-  where(tablename, filterObjects): DynamoORMRelation {
-    if (!this.batchTableFilter[tablename]) {
-      this.batchTableFilter[tablename] = {};
-    }
-    const filterObjectKeys = Object.keys(filterObjects);
-    for (const filterObjectKey of filterObjectKeys) {
-      if (!this.batchTableFilter[tablename][filterObjectKey]) {
-        this.batchTableFilter[tablename][filterObjectKey] = [];
-      }
-      const values = [].concat.apply([], [filterObjects[filterObjectKey]]);
-      const filterValues = this.batchTableFilter[tablename][filterObjectKey].concat(values);
-      this.batchTableFilter[tablename][filterObjectKey] = filterValues.filter((elem, index, self) => self.indexOf(elem) == index);
-    }
-    return this;
-  }
-
-  async load() {
-    const requestItems = {};
-    for (const tableName of Object.keys(this.batchTableFilter)) {
-      const keyValuesObject = this.batchTableFilter[tableName];
-      const dynamoFilterKeys = [];
-      const filterObjectKeys = Object.keys(keyValuesObject);
-      for (const filterObjectKey of filterObjectKeys) {
-        const dynamoFilterObject = {};
-        for (const filterObjectValue of keyValuesObject[filterObjectKey]) {
-          dynamoFilterObject[filterObjectKey] = filterObjectValue;
-          dynamoFilterKeys.push(dynamoFilterObject);
-        }
-      }
-      requestItems[tableName] = {
-        Keys: dynamoFilterKeys,
-      };
-    }
-    const params = {
-      RequestItems: requestItems,
-    };
-    this.clear();
-    return dynamoClient.batchGet(params).promise();
-  }
-
-  clear() {
-    this.batchTableFilter = {};
   }
 }

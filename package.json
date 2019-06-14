@@ -1,6 +1,6 @@
 {
-  "name": "dynamoorm",
-  "version": "1.0.0",
+  "name": "dynamodb-node-orm",
+  "version": "0.0.1",
   "author": "TakuKobayashi",
   "bugs": {
     "url": "https://github.com/TakuKobayashi/NodeDynamoORM/issues"
@@ -25,6 +25,9 @@
   "directories": {
     "lib": "lib"
   },
+  "files": [
+    "dist"
+  ],
   "homepage": "https://github.com/TakuKobayashi/NodeDynamoORM#readme",
   "keywords": [
     "AWS",
@@ -32,7 +35,7 @@
     "typescript"
   ],
   "license": "MIT",
-  "main": "index.js",
+  "main": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TakuKobayashi/NodeDynamoORM.git"
@@ -41,5 +44,6 @@
     "build": "tsc -p tsconfig.json",
     "format": "prettier --config .prettierrc --write '**/*.{ts,js}'",
     "test": "echo \"Error: no test specified\" && exit 1"
-  }
+  },
+  "types": "dist/index.d.ts"
 }
