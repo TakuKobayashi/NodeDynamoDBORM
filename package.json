@@ -43,6 +43,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "format": "prettier --config .prettierrc --write '**/*.{ts,js}'",
+    "docs": "typedoc --out docs/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "types": "dist/index.d.ts"

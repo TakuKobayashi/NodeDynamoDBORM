@@ -9,14 +9,21 @@ export class DynamoDBORM {
     dynamoClient = new AWS.DynamoDB.DocumentClient();
   }
 
+  /**
+   * update AWS Config;
+   */
   static updateConfig(
-    config: ConfigurationOptions & ConfigurationServicePlaceholders & APIVersions & { [key: string]: any },
-    allowUnknownKeys: true,
+    config: ConfigurationOptions & ConfigurationServicePlaceholders & APIVersions & { [key: string]: any }
   ) {
     AWS.config.update(config);
     dynamoClient = new AWS.DynamoDB.DocumentClient();
   }
 
+  /**
+   * get data from primaryKeys.
+   * @param {string, object} tablename and filter primaryKeys
+   * @return {object} dynamodb table row object
+   */
   async findBy(tablename: string, filterObject: { [s: string]: any }): Promise<Map<string, any>> {
     const params = {
       TableName: tablename,
@@ -26,6 +33,11 @@ export class DynamoDBORM {
     return result.Item as Map<string, any>;
   }
 
+  /**
+   * search query data from primaryKey.
+   * @param {string, object} tablename and filter primaryKey
+   * @return {array[object]} dynamodb table row objects
+   */
   async findByAll(tablename: string, filterObject: { [s: string]: any }): Promise<Map<string, any>[]> {
     const keyNames = Object.keys(filterObject);
     const keyConditionExpression = keyNames.map((keyName) => '#' + keyName + ' = ' + ':' + keyName).join(' AND ');
@@ -45,6 +57,11 @@ export class DynamoDBORM {
     return queryResult.Items as Map<string, any>[];
   }
 
+  /**
+   * update row data.
+   * @param {string, object, object} tablename and filter primaryKeys and update obejct.
+   * @return {object} updated object
+   */
   async update(tablename: string, filterObject: { [s: string]: any }, updateObject: { [s: string]: any }): Promise<Map<string, any>> {
     let updateExpressionString = 'set ';
     const updateExpressionAttributeValues = {};
@@ -68,6 +85,11 @@ export class DynamoDBORM {
     return updateResult.Attributes as Map<string, any>;
   }
 
+  /**
+   * create new row  data.
+   * @param {string, object} tablename and new obejct.
+   * @return {object} created object
+   */
   async create(tablename: string, putObject: { [s: string]: any }): Promise<Map<string, any>> {
     const params = {
       TableName: tablename,
@@ -78,6 +100,11 @@ export class DynamoDBORM {
     return Object.assign(createResult.Attributes, putObject) as Map<string, any>;
   }
 
+  /**
+   * delete row data.
+   * @param {string, object} tablename and delete data.
+   * @return {object} before delete object
+   */
   async delete(tablename: string, filterObject: { [s: string]: any }): Promise<Map<string, any>> {
     const params = {
       TableName: tablename,
@@ -88,6 +115,11 @@ export class DynamoDBORM {
     return deleteResult.Attributes as Map<string, any>;
   }
 
+  /**
+   * get all tables data.
+   * @param {string} tablename.
+   * @return {array[object]} all of table data.
+   */
   async all(tablename): Promise<Map<string, any>[]> {
     const scanResult = await dynamoClient.scan({ TableName: tablename }).promise();
     return scanResult.Items as Map<string, any>[];
