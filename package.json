@@ -1,5 +1,5 @@
 {
-  "name": "dynamodb-node-orm",
+  "name": "node-dynamodb-orm",
   "version": "0.0.1",
   "author": "TakuKobayashi",
   "bugs": {
