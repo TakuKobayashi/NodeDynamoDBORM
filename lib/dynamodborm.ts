@@ -4,7 +4,7 @@ import { APIVersions, ConfigurationOptions } from 'aws-sdk/lib/config';
 const AWS = require('aws-sdk');
 let dynamoClient = new AWS.DynamoDB.DocumentClient();
 
-export class DynamoDBORM {
+export default class DynamoDBORM {
   constructor() {
     dynamoClient = new AWS.DynamoDB.DocumentClient();
   }
@@ -123,5 +123,55 @@ export class DynamoDBORM {
   async all(tablename): Promise<Map<string, any>[]> {
     const scanResult = await dynamoClient.scan({ TableName: tablename }).promise();
     return scanResult.Items as Map<string, any>[];
+  }
+
+  /**
+ * get data from primaryKeys.
+ * @param {string, object} tablename and filter primaryKeys
+ * @return {object} dynamodb table row object
+ */
+  async where(tablename: string, filterObject: { [s: string]: any }): Promise<Map<string, any>> {
+    const params = {
+      TableName: tablename,
+      Key: filterObject,
+    };
+    const result = await dynamoClient.get(params).promise();
+    return result.Item as Map<string, any>;
+  }
+
+  /**
+  * get data to table
+  * @param {string, array} tablename and filterObjects
+  * @return {array} Items
+  */
+  async whereIn(tablename: string, filterObjects: { [s: string]: any }[]): Promise<Map<string, any>[]> {
+    const tableItems = {}
+    tableItems[tablename] = {
+      Keys: filterObjects,
+    };
+    const result = await dynamoClient.batchGet({
+      RequestItems: tableItems
+    }).promise();
+    return result.Responses[tablename] as Map<string, any>[];
+  }
+
+  /**
+  * import data to table
+  * @param {string, object} tablename and putObjects
+  * @return {array} UnprocessedItems
+  */
+  async import(tablename: string, putObjects: { [s: string]: any }[]): Promise<Map<string, any>[]> {
+    const importItems = {}
+    importItems[tablename] = putObjects.map(putObject => {
+      return {
+        PutRequest: {
+          Item: putObject,
+        }
+      }
+    });
+    const result = await dynamoClient.batchWrite({
+      RequestItems: importItems
+    }).promise();
+    return result.UnprocessedItems as Map<string, any>[];
   }
 }
