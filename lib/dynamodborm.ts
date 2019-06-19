@@ -12,9 +12,7 @@ export default class DynamoDBORM {
   /**
    * update AWS Config;
    */
-  static updateConfig(
-    config: ConfigurationOptions & ConfigurationServicePlaceholders & APIVersions & { [key: string]: any }
-  ) {
+  static updateConfig(config: ConfigurationOptions & ConfigurationServicePlaceholders & APIVersions & { [key: string]: any }) {
     AWS.config.update(config);
     dynamoClient = new AWS.DynamoDB.DocumentClient();
   }
@@ -126,10 +124,10 @@ export default class DynamoDBORM {
   }
 
   /**
- * get data from primaryKeys.
- * @param {string, object} tablename and filter primaryKeys
- * @return {object} dynamodb table row object
- */
+   * get data from primaryKeys.
+   * @param {string, object} tablename and filter primaryKeys
+   * @return {object} dynamodb table row object
+   */
   async where(tablename: string, filterObject: { [s: string]: any }): Promise<Map<string, any>> {
     const params = {
       TableName: tablename,
@@ -140,38 +138,42 @@ export default class DynamoDBORM {
   }
 
   /**
-  * get data to table
-  * @param {string, array} tablename and filterObjects
-  * @return {array} Items
-  */
+   * get data to table
+   * @param {string, array} tablename and filterObjects
+   * @return {array} Items
+   */
   async whereIn(tablename: string, filterObjects: { [s: string]: any }[]): Promise<Map<string, any>[]> {
-    const tableItems = {}
+    const tableItems = {};
     tableItems[tablename] = {
       Keys: filterObjects,
     };
-    const result = await dynamoClient.batchGet({
-      RequestItems: tableItems
-    }).promise();
+    const result = await dynamoClient
+      .batchGet({
+        RequestItems: tableItems,
+      })
+      .promise();
     return result.Responses[tablename] as Map<string, any>[];
   }
 
   /**
-  * import data to table
-  * @param {string, object} tablename and putObjects
-  * @return {array} UnprocessedItems
-  */
+   * import data to table
+   * @param {string, object} tablename and putObjects
+   * @return {array} UnprocessedItems
+   */
   async import(tablename: string, putObjects: { [s: string]: any }[]): Promise<Map<string, any>[]> {
-    const importItems = {}
-    importItems[tablename] = putObjects.map(putObject => {
+    const importItems = {};
+    importItems[tablename] = putObjects.map((putObject) => {
       return {
         PutRequest: {
           Item: putObject,
-        }
-      }
+        },
+      };
     });
-    const result = await dynamoClient.batchWrite({
-      RequestItems: importItems
-    }).promise();
+    const result = await dynamoClient
+      .batchWrite({
+        RequestItems: importItems,
+      })
+      .promise();
     return result.UnprocessedItems as Map<string, any>[];
   }
 }
