@@ -181,4 +181,26 @@ export default class DynamoDBORM {
       .promise();
     return result.UnprocessedItems as Map<string, any>[];
   }
+
+  /**
+   * import data to table
+   * @param {string, object} tablename and putObjects
+   * @return {array} UnprocessedItems
+   */
+  async deleteAll(tablename: string, filterObjects: { [s: string]: any }[]): Promise<Map<string, any>[]> {
+    const importItems = {};
+    importItems[tablename] = filterObjects.map((filterObject) => {
+      return {
+        DeleteRequest: {
+          Key: filterObject,
+        },
+      };
+    });
+    const result = await dynamoClient
+      .batchWrite({
+        RequestItems: importItems,
+      })
+      .promise();
+    return result.UnprocessedItems as Map<string, any>[];
+  }
 }
