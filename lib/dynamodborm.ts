@@ -124,17 +124,22 @@ export default class DynamoDBORM {
   }
 
   /**
-   * get data from primaryKeys.
-   * @param {string, object} tablename and filter primaryKeys
-   * @return {object} dynamodb table row object
+   * get all tables data.
+   * @param {string} tablename.
+   * @return {array[object]} all of table data.
    */
-  async where(tablename: string, filterObject: { [s: string]: any }): Promise<Map<string, any>> {
-    const params = {
-      TableName: tablename,
-      Key: filterObject,
-    };
-    const result = await dynamoClient.get(params).promise();
-    return result.Item as Map<string, any>;
+  async count(tablename): Promise<Number> {
+    const scanResult = await dynamoClient.scan({ TableName: tablename }).promise();
+    return scanResult.Count;
+  }
+
+  /**
+   * get all tables data.
+   * @param {string} tablename.
+   * @return {array[object]} all of table data.
+   */
+  async executeRows(methodName: string, params: { [s: string]: any }): Promise<any> {
+    return dynamoClient[methodName](params).promise();
   }
 
   /**
