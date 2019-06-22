@@ -1,1 +1,1 @@
-export * from './dynamodborm';
+export * from './dynamodb-orm';

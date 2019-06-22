@@ -1,22 +1,7 @@
-import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_placeholders';
-import { APIVersions, ConfigurationOptions } from 'aws-sdk/lib/config';
+import DynamoDBORMRelation from './dynamodb-orm-relation'
+import DynamoDBORMBase from './dynamodb-orm-base'
 
-const AWS = require('aws-sdk');
-let dynamoClient = new AWS.DynamoDB.DocumentClient();
-
-export default class DynamoDBORM {
-  constructor() {
-    dynamoClient = new AWS.DynamoDB.DocumentClient();
-  }
-
-  /**
-   * update AWS Config;
-   */
-  static updateConfig(config: ConfigurationOptions & ConfigurationServicePlaceholders & APIVersions & { [key: string]: any }) {
-    AWS.config.update(config);
-    dynamoClient = new AWS.DynamoDB.DocumentClient();
-  }
-
+export default class DynamoDBORM extends DynamoDBORMBase {
   /**
    * get data from primaryKeys.
    * @param {string, object} tablename and filter primaryKeys
@@ -27,7 +12,7 @@ export default class DynamoDBORM {
       TableName: tablename,
       Key: filterObject,
     };
-    const result = await dynamoClient.get(params).promise();
+    const result = await this.dynamoClient.get(params).promise();
     return result.Item as Map<string, any>;
   }
 
@@ -51,7 +36,7 @@ export default class DynamoDBORM {
       ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
     };
-    const queryResult = await dynamoClient.query(params).promise();
+    const queryResult = await this.dynamoClient.query(params).promise();
     return queryResult.Items as Map<string, any>[];
   }
 
@@ -79,7 +64,7 @@ export default class DynamoDBORM {
       ExpressionAttributeValues: updateExpressionAttributeValues,
       ReturnValues: 'ALL_NEW',
     };
-    const updateResult = await dynamoClient.update(params).promise();
+    const updateResult = await this.dynamoClient.update(params).promise();
     return updateResult.Attributes as Map<string, any>;
   }
 
@@ -94,7 +79,7 @@ export default class DynamoDBORM {
       Item: putObject,
       ReturnValues: 'ALL_OLD',
     };
-    const createResult = await dynamoClient.put(params).promise();
+    const createResult = await this.dynamoClient.put(params).promise();
     return Object.assign(createResult.Attributes, putObject) as Map<string, any>;
   }
 
@@ -109,7 +94,7 @@ export default class DynamoDBORM {
       Key: filterObject,
       ReturnValues: 'ALL_OLD',
     };
-    const deleteResult = await dynamoClient.delete(params).promise();
+    const deleteResult = await this.dynamoClient.delete(params).promise();
     return deleteResult.Attributes as Map<string, any>;
   }
 
@@ -119,7 +104,7 @@ export default class DynamoDBORM {
    * @return {array[object]} all of table data.
    */
   async all(tablename): Promise<Map<string, any>[]> {
-    const scanResult = await dynamoClient.scan({ TableName: tablename }).promise();
+    const scanResult = await this.dynamoClient.scan({ TableName: tablename }).promise();
     return scanResult.Items as Map<string, any>[];
   }
 
@@ -129,7 +114,7 @@ export default class DynamoDBORM {
    * @return {array[object]} all of table data.
    */
   async count(tablename): Promise<Number> {
-    const scanResult = await dynamoClient.scan({ TableName: tablename }).promise();
+    const scanResult = await this.dynamoClient.scan({ TableName: tablename }).promise();
     return scanResult.Count;
   }
 
@@ -139,7 +124,7 @@ export default class DynamoDBORM {
    * @return {array[object]} all of table data.
    */
   async executeRows(methodName: string, params: { [s: string]: any }): Promise<any> {
-    return dynamoClient[methodName](params).promise();
+    return this.dynamoClient[methodName](params).promise();
   }
 
   /**
@@ -156,7 +141,7 @@ export default class DynamoDBORM {
         },
       };
     });
-    const result = await dynamoClient
+    const result = await this.dynamoClient
       .batchWrite({
         RequestItems: importItems,
       })
@@ -178,7 +163,7 @@ export default class DynamoDBORM {
         },
       };
     });
-    const result = await dynamoClient
+    const result = await this.dynamoClient
       .batchWrite({
         RequestItems: importItems,
       })
