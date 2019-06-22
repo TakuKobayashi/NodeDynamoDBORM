@@ -143,24 +143,6 @@ export default class DynamoDBORM {
   }
 
   /**
-   * get data to table
-   * @param {string, array} tablename and filterObjects
-   * @return {array} Items
-   */
-  async whereIn(tablename: string, filterObjects: { [s: string]: any }[]): Promise<Map<string, any>[]> {
-    const tableItems = {};
-    tableItems[tablename] = {
-      Keys: filterObjects,
-    };
-    const result = await dynamoClient
-      .batchGet({
-        RequestItems: tableItems,
-      })
-      .promise();
-    return result.Responses[tablename] as Map<string, any>[];
-  }
-
-  /**
    * import data to table
    * @param {string, object} tablename and putObjects
    * @return {array} UnprocessedItems
