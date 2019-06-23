@@ -80,7 +80,7 @@ export default class DynamoDBORM extends DynamoDBORMBase {
       ReturnValues: 'ALL_OLD',
     };
     const createResult = await this.dynamoClient.put(params).promise();
-    return Object.assign(createResult.Attributes, putObject) as Map<string, any>;
+    return { ...createResult.Attributes, ...putObject } as Map<string, any>;
   }
 
   /**
@@ -119,20 +119,11 @@ export default class DynamoDBORM extends DynamoDBORMBase {
   }
 
   /**
-   * get all tables data.
-   * @param {string} tablename.
-   * @return {array[object]} all of table data.
-   */
-  async executeRows(methodName: string, params: { [s: string]: any }): Promise<any> {
-    return this.dynamoClient[methodName](params).promise();
-  }
-
-  /**
    * import data to table
    * @param {string, object} tablename and putObjects
    * @return {array} UnprocessedItems
    */
-  async import(putObjects: { [s: string]: any }[]): Promise<Map<string, any>[]> {
+  async import(putObjects: { [s: string]: any }[]): Promise<any> {
     const importItems = {};
     importItems[this.tableName] = putObjects.map((putObject) => {
       return {
@@ -146,7 +137,7 @@ export default class DynamoDBORM extends DynamoDBORMBase {
         RequestItems: importItems,
       })
       .promise();
-    return result.UnprocessedItems as Map<string, any>[];
+    return result;
   }
 
   /**
@@ -154,7 +145,7 @@ export default class DynamoDBORM extends DynamoDBORMBase {
    * @param {string, object} tablename and putObjects
    * @return {array} UnprocessedItems
    */
-  async deleteAll(filterObjects: { [s: string]: any }[]): Promise<Map<string, any>[]> {
+  async deleteAll(filterObjects: { [s: string]: any }[]): Promise<any> {
     const importItems = {};
     importItems[this.tableName] = filterObjects.map((filterObject) => {
       return {
@@ -168,6 +159,6 @@ export default class DynamoDBORM extends DynamoDBORMBase {
         RequestItems: importItems,
       })
       .promise();
-    return result.UnprocessedItems as Map<string, any>[];
+    return result;
   }
 }
