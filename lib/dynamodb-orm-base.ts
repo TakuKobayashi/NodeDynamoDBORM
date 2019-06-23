@@ -1,6 +1,7 @@
 import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_placeholders';
 import { APIVersions, ConfigurationOptions } from 'aws-sdk/lib/config';
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
+import DynamoDBORMRelation from './dynamodb-orm-relation';
 
 const AWS = require('aws-sdk');
 
@@ -31,6 +32,14 @@ export default abstract class DynamoDBORMBase {
     this.dynamoClient = new AWS.DynamoDB.DocumentClient();
     this.tableName = tableName;
   }
+
+  abstract where(filterObject: { [s: string]: any }): DynamoDBORMRelation;
+
+  abstract async count(): Promise<Number>;
+
+  abstract async exists(filterObject: { [s: string]: any }): Promise<boolean>;
+
+  abstract async limit(limitNumaber: number): Promise<Map<string, any>[]>;
 
   /**
    * update AWS Config;

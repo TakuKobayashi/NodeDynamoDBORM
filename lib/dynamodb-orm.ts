@@ -110,12 +110,36 @@ export default class DynamoDBORM extends DynamoDBORMBase {
 
   /**
    * get all tables data.
-   * @param {string} tablename.
    * @return {array[object]} all of table data.
    */
-  async count(): Promise<Number> {
-    const scanResult = await this.dynamoClient.scan({ TableName: this.tableName }).promise();
+  where(filterObject: { [s: string]: any }): DynamoDBORMRelation {
+    return new DynamoDBORMRelation(this.tableName, filterObject);
+  }
+
+  /**
+   * get all tables data.
+   * @return {array[object]} all of table data.
+   */
+  async limit(limitNumaber: number): Promise<Map<string, any>[]>{
+    const scanResult = await this.dynamoClient.scan({ TableName: this.tableName, Limit: limitNumaber }).promise();
+    return scanResult.Items as Map<string, any>[];
+  }
+
+  /**
+   * get all tables data.
+   * @return {number} all of table data.
+   */
+  async count(): Promise<number> {
+    const scanResult = await this.dynamoClient.scan({ TableName: this.tableName, Select: "COUNT" }).promise();
     return scanResult.Count;
+  }
+
+  /**
+   * get all tables data.
+   * @return {boolean} all of table data.
+   */
+  async exists(filterObject: { [s: string]: any } = {}): Promise<boolean> {
+    return this.where(filterObject).exists();
   }
 
   /**
