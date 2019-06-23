@@ -1,5 +1,5 @@
-import DynamoDBORMRelation from './dynamodb-orm-relation'
-import DynamoDBORMBase from './dynamodb-orm-base'
+import DynamoDBORMRelation from './dynamodb-orm-relation';
+import DynamoDBORMBase from './dynamodb-orm-base';
 
 export default class DynamoDBORM extends DynamoDBORMBase {
   /**
