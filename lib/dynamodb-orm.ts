@@ -7,9 +7,9 @@ export default class DynamoDBORM extends DynamoDBORMBase {
    * @param {string, object} tablename and filter primaryKeys
    * @return {object} dynamodb table row object
    */
-  async findBy(tablename: string, filterObject: { [s: string]: any }): Promise<Map<string, any>> {
+  async findBy(filterObject: { [s: string]: any }): Promise<Map<string, any>> {
     const params = {
-      TableName: tablename,
+      TableName: this.tableName,
       Key: filterObject,
     };
     const result = await this.dynamoClient.get(params).promise();
@@ -21,7 +21,7 @@ export default class DynamoDBORM extends DynamoDBORMBase {
    * @param {string, object} tablename and filter primaryKey
    * @return {array[object]} dynamodb table row objects
    */
-  async findByAll(tablename: string, filterObject: { [s: string]: any }): Promise<Map<string, any>[]> {
+  async findByAll(filterObject: { [s: string]: any }): Promise<Map<string, any>[]> {
     const keyNames = Object.keys(filterObject);
     const keyConditionExpression = keyNames.map((keyName) => '#' + keyName + ' = ' + ':' + keyName).join(' AND ');
     const expressionAttributeNames = {};
@@ -31,7 +31,7 @@ export default class DynamoDBORM extends DynamoDBORMBase {
       expressionAttributeValues[':' + keyName] = filterObject[keyName];
     }
     const params = {
-      TableName: tablename,
+      TableName: this.tableName,
       KeyConditionExpression: keyConditionExpression,
       ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
@@ -45,7 +45,7 @@ export default class DynamoDBORM extends DynamoDBORMBase {
    * @param {string, object, object} tablename and filter primaryKeys and update obejct.
    * @return {object} updated object
    */
-  async update(tablename: string, filterObject: { [s: string]: any }, updateObject: { [s: string]: any }): Promise<Map<string, any>> {
+  async update(filterObject: { [s: string]: any }, updateObject: { [s: string]: any }): Promise<Map<string, any>> {
     let updateExpressionString = 'set ';
     const updateExpressionAttributeValues = {};
     const keys = Object.keys(updateObject);
@@ -58,7 +58,7 @@ export default class DynamoDBORM extends DynamoDBORMBase {
       updateExpressionAttributeValues[praceholder] = updateObject[keys[i]];
     }
     const params = {
-      TableName: tablename,
+      TableName: this.tableName,
       Key: filterObject,
       UpdateExpression: updateExpressionString,
       ExpressionAttributeValues: updateExpressionAttributeValues,
@@ -73,9 +73,9 @@ export default class DynamoDBORM extends DynamoDBORMBase {
    * @param {string, object} tablename and new obejct.
    * @return {object} created object
    */
-  async create(tablename: string, putObject: { [s: string]: any }): Promise<Map<string, any>> {
+  async create(putObject: { [s: string]: any }): Promise<Map<string, any>> {
     const params = {
-      TableName: tablename,
+      TableName: this.tableName,
       Item: putObject,
       ReturnValues: 'ALL_OLD',
     };
@@ -88,9 +88,9 @@ export default class DynamoDBORM extends DynamoDBORMBase {
    * @param {string, object} tablename and delete data.
    * @return {object} before delete object
    */
-  async delete(tablename: string, filterObject: { [s: string]: any }): Promise<Map<string, any>> {
+  async delete(filterObject: { [s: string]: any }): Promise<Map<string, any>> {
     const params = {
-      TableName: tablename,
+      TableName: this.tableName,
       Key: filterObject,
       ReturnValues: 'ALL_OLD',
     };
@@ -103,8 +103,8 @@ export default class DynamoDBORM extends DynamoDBORMBase {
    * @param {string} tablename.
    * @return {array[object]} all of table data.
    */
-  async all(tablename): Promise<Map<string, any>[]> {
-    const scanResult = await this.dynamoClient.scan({ TableName: tablename }).promise();
+  async all(): Promise<Map<string, any>[]> {
+    const scanResult = await this.dynamoClient.scan({ TableName: this.tableName }).promise();
     return scanResult.Items as Map<string, any>[];
   }
 
@@ -113,8 +113,8 @@ export default class DynamoDBORM extends DynamoDBORMBase {
    * @param {string} tablename.
    * @return {array[object]} all of table data.
    */
-  async count(tablename): Promise<Number> {
-    const scanResult = await this.dynamoClient.scan({ TableName: tablename }).promise();
+  async count(): Promise<Number> {
+    const scanResult = await this.dynamoClient.scan({ TableName: this.tableName }).promise();
     return scanResult.Count;
   }
 
@@ -132,9 +132,9 @@ export default class DynamoDBORM extends DynamoDBORMBase {
    * @param {string, object} tablename and putObjects
    * @return {array} UnprocessedItems
    */
-  async import(tablename: string, putObjects: { [s: string]: any }[]): Promise<Map<string, any>[]> {
+  async import(putObjects: { [s: string]: any }[]): Promise<Map<string, any>[]> {
     const importItems = {};
-    importItems[tablename] = putObjects.map((putObject) => {
+    importItems[this.tableName] = putObjects.map((putObject) => {
       return {
         PutRequest: {
           Item: putObject,
@@ -154,9 +154,9 @@ export default class DynamoDBORM extends DynamoDBORMBase {
    * @param {string, object} tablename and putObjects
    * @return {array} UnprocessedItems
    */
-  async deleteAll(tablename: string, filterObjects: { [s: string]: any }[]): Promise<Map<string, any>[]> {
+  async deleteAll(filterObjects: { [s: string]: any }[]): Promise<Map<string, any>[]> {
     const importItems = {};
-    importItems[tablename] = filterObjects.map((filterObject) => {
+    importItems[this.tableName] = filterObjects.map((filterObject) => {
       return {
         DeleteRequest: {
           Key: filterObject,
