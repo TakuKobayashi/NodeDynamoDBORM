@@ -90,38 +90,61 @@ describe('DynamoDBORM', () => {
     expect(await dynamodbOrm.findBy(musicObj)).toBeUndefined();
   });
 
-
   it('import', async () => {
-    await dynamodbOrm.import([{ Artist: 'sampleArtist1', SongTitle: 'sampleSongTitle1' }, { Artist: 'sampleArtist2', SongTitle: 'sampleSongTitle2' }]);
+    await dynamodbOrm.import([
+      { Artist: 'sampleArtist1', SongTitle: 'sampleSongTitle1' },
+      { Artist: 'sampleArtist2', SongTitle: 'sampleSongTitle2' },
+    ]);
     expect(await dynamodbOrm.findBy({ Artist: 'sampleArtist1', SongTitle: 'sampleSongTitle1' })).toEqual({
       Artist: 'sampleArtist1',
-      SongTitle: 'sampleSongTitle1'
+      SongTitle: 'sampleSongTitle1',
     });
     expect(await dynamodbOrm.findBy({ Artist: 'sampleArtist2', SongTitle: 'sampleSongTitle2' })).toEqual({
       Artist: 'sampleArtist2',
-      SongTitle: 'sampleSongTitle2'
+      SongTitle: 'sampleSongTitle2',
     });
   });
 
   it('findByAll', async () => {
-    await dynamodbOrm.import([{ Artist: 'sampleArtist', SongTitle: 'sampleSongTitle1' }, { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle2' }]);
-    expect(await dynamodbOrm.findByAll({Artist: 'sampleArtist'})).toEqual([{ Artist: 'sampleArtist', SongTitle: 'sampleSongTitle1' }, { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle2' }]);
+    await dynamodbOrm.import([
+      { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle1' },
+      { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle2' },
+    ]);
+    expect(await dynamodbOrm.findByAll({ Artist: 'sampleArtist' })).toEqual([
+      { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle1' },
+      { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle2' },
+    ]);
   });
 
   it('all', async () => {
-    await dynamodbOrm.import([{ Artist: 'sampleArtist1', SongTitle: 'sampleSongTitle1' }, { Artist: 'sampleArtist2', SongTitle: 'sampleSongTitle2' }]);
+    await dynamodbOrm.import([
+      { Artist: 'sampleArtist1', SongTitle: 'sampleSongTitle1' },
+      { Artist: 'sampleArtist2', SongTitle: 'sampleSongTitle2' },
+    ]);
     const allData = await dynamodbOrm.all();
-    expect(allData).toEqual([{ Artist: 'sampleArtist1', SongTitle: 'sampleSongTitle1' }, { Artist: 'sampleArtist2', SongTitle: 'sampleSongTitle2' }]);
+    expect(allData).toEqual([
+      { Artist: 'sampleArtist1', SongTitle: 'sampleSongTitle1' },
+      { Artist: 'sampleArtist2', SongTitle: 'sampleSongTitle2' },
+    ]);
   });
 
   it('count', async () => {
-    await dynamodbOrm.import([{ Artist: 'sampleArtist1', SongTitle: 'sampleSongTitle1' }, { Artist: 'sampleArtist2', SongTitle: 'sampleSongTitle2' }]);
+    await dynamodbOrm.import([
+      { Artist: 'sampleArtist1', SongTitle: 'sampleSongTitle1' },
+      { Artist: 'sampleArtist2', SongTitle: 'sampleSongTitle2' },
+    ]);
     expect(await dynamodbOrm.count()).toBe(2);
   });
 
   it('deleteAll', async () => {
-    await dynamodbOrm.import([{ Artist: 'sampleArtist1', SongTitle: 'sampleSongTitle1' }, { Artist: 'sampleArtist2', SongTitle: 'sampleSongTitle2' }]);
-    await dynamodbOrm.deleteAll([{ Artist: 'sampleArtist1', SongTitle: 'sampleSongTitle1' }, { Artist: 'sampleArtist2', SongTitle: 'sampleSongTitle2' }]);
+    await dynamodbOrm.import([
+      { Artist: 'sampleArtist1', SongTitle: 'sampleSongTitle1' },
+      { Artist: 'sampleArtist2', SongTitle: 'sampleSongTitle2' },
+    ]);
+    await dynamodbOrm.deleteAll([
+      { Artist: 'sampleArtist1', SongTitle: 'sampleSongTitle1' },
+      { Artist: 'sampleArtist2', SongTitle: 'sampleSongTitle2' },
+    ]);
     expect(await dynamodbOrm.count()).toBe(0);
   });
 });
