@@ -73,9 +73,28 @@ export default class DynamoDBORMRelation extends DynamoDBORMBase {
 
   private async executeQuery(): Promise<QueryOutput | ScanOutput> {
     if (this.filterObject && Object.keys(this.filterObject).length > 0) {
+      this.queryParams = {...this.queryParams, ...this.generateFilterQueryExpression()}
       return this.dynamoClient.query(this.queryParams).promise();
     } else {
       return this.dynamoClient.scan(this.queryParams).promise();
     }
+  }
+
+  private generateFilterQueryExpression(){
+    const keyNames = Object.keys(this.filterObject);
+    const keyConditionExpression = keyNames.map((keyName) => '#' + keyName + ' = ' + ':' + keyName).join(' AND ');
+    const filterExpression = "";
+    const expressionAttributeNames = {};
+    const expressionAttributeValues = {};
+    for (const keyName of keyNames) {
+      expressionAttributeNames['#' + keyName] = keyName;
+      expressionAttributeValues[':' + keyName] = this.filterObject[keyName];
+    }
+    return {
+      KeyConditionExpression: keyConditionExpression,
+      ExpressionAttributeNames: expressionAttributeNames,
+      ExpressionAttributeValues: expressionAttributeValues,
+      FilterExpression: filterExpression,
+    };
   }
 }
