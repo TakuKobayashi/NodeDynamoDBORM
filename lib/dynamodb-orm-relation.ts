@@ -1,13 +1,16 @@
 import DynamoDBORMBase from './dynamodb-orm-base';
 import { QueryInput } from 'aws-sdk/clients/dynamodb';
+import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client';
+import ScanOutput = DocumentClient.ScanOutput;
+import QueryOutput = DocumentClient.QueryOutput;
 
 export default class DynamoDBORMRelation extends DynamoDBORMBase {
   private filterObject: { [s: string]: any }
   private queryParams: QueryInput
 
-  constructor(tableName: string, filterObject: { [s: string]: any }) {
+  constructor(tableName: string) {
     super(tableName);
-    this.filterObject = filterObject;
+    this.filterObject = {};
     this.queryParams = {
       TableName: this.tableName
     };
@@ -20,6 +23,15 @@ export default class DynamoDBORMRelation extends DynamoDBORMBase {
    */
   where(filterObject: { [s: string]: any }): DynamoDBORMRelation {
     this.filterObject = {...this.filterObject, filterObject}
+    return this;
+  }
+
+  /**
+   * get all tables data.
+   * @return {array[object]} all of table data.
+   */
+  offset(offsetStart: { [s: string]: any }): DynamoDBORMRelation{
+    this.queryParams.ExclusiveStartKey = offsetStart;
     return this;
   }
 
@@ -59,7 +71,11 @@ export default class DynamoDBORMRelation extends DynamoDBORMBase {
     return queryResult.Items as Map<string, any>[];
   }
 
-  private async executeQuery(): Promise<any> {
-    return this.dynamoClient.query(this.queryParams).promise();
+  private async executeQuery(): Promise<QueryOutput | ScanOutput> {
+    if(this.filterObject && Object.keys(this.filterObject).length > 0){
+      return this.dynamoClient.query(this.queryParams).promise();
+    }else{
+      return this.dynamoClient.scan(this.queryParams).promise();
+    }
   }
 }

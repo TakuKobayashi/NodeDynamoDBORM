@@ -45,6 +45,8 @@ export default abstract class DynamoDBORMBase {
 
   abstract where(filterObject: { [s: string]: any }): DynamoDBORMRelation;
 
+  abstract offset(offsetStart: { [s: string]: any }): DynamoDBORMRelation
+
   abstract async count(): Promise<Number>;
 
   abstract async exists(filterObject: { [s: string]: any }): Promise<boolean>;

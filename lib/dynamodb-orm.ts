@@ -113,7 +113,15 @@ export default class DynamoDBORM extends DynamoDBORMBase {
    * @return {array[object]} all of table data.
    */
   where(filterObject: { [s: string]: any }): DynamoDBORMRelation {
-    return new DynamoDBORMRelation(this.tableName, filterObject);
+    return new DynamoDBORMRelation(this.tableName).where(filterObject);
+  }
+
+  /**
+   * get all tables data.
+   * @return {array[object]} all of table data.
+   */
+  offset(offsetStart: { [s: string]: any }): DynamoDBORMRelation {
+    return new DynamoDBORMRelation(this.tableName).offset(offsetStart);
   }
 
   /**
