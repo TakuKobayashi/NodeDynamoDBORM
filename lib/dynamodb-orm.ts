@@ -128,7 +128,7 @@ export default class DynamoDBORM extends DynamoDBORMBase {
    * get all tables data.
    * @return {array[object]} all of table data.
    */
-  async limit(limitNumaber: number): Promise<Map<string, any>[]>{
+  async limit(limitNumaber: number): Promise<Map<string, any>[]> {
     const scanResult = await this.dynamoClient.scan({ TableName: this.tableName, Limit: limitNumaber }).promise();
     return scanResult.Items as Map<string, any>[];
   }
@@ -138,7 +138,7 @@ export default class DynamoDBORM extends DynamoDBORMBase {
    * @return {number} all of table data.
    */
   async count(): Promise<number> {
-    const scanResult = await this.dynamoClient.scan({ TableName: this.tableName, Select: "COUNT" }).promise();
+    const scanResult = await this.dynamoClient.scan({ TableName: this.tableName, Select: 'COUNT' }).promise();
     return scanResult.Count;
   }
 

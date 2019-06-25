@@ -10,7 +10,7 @@ export default abstract class DynamoDBORMBase {
   public tableName: string;
   public tableInfo: TableDescription;
   private static awsConfig: { [key: string]: any };
-  private static tableInfos: {[tableName: string]: TableDescription}
+  private static tableInfos: { [tableName: string]: TableDescription };
 
   constructor(tableName: string) {
     const processEnv = process.env;
@@ -34,10 +34,10 @@ export default abstract class DynamoDBORMBase {
     this.dynamoClient = new AWS.DynamoDB.DocumentClient();
     this.tableName = tableName;
 
-    if(DynamoDBORMBase.tableInfos[tableName]) {
+    if (DynamoDBORMBase.tableInfos[tableName]) {
       this.tableInfo = DynamoDBORMBase.tableInfos[tableName];
-    }else{
-      this.loadTableInfo().then(tableInfo => {
+    } else {
+      this.loadTableInfo().then((tableInfo) => {
         DynamoDBORMBase.tableInfos[this.tableName] = tableInfo;
       });
     }
@@ -45,7 +45,7 @@ export default abstract class DynamoDBORMBase {
 
   abstract where(filterObject: { [s: string]: any }): DynamoDBORMRelation;
 
-  abstract offset(offsetStart: { [s: string]: any }): DynamoDBORMRelation
+  abstract offset(offsetStart: { [s: string]: any }): DynamoDBORMRelation;
 
   abstract async count(): Promise<Number>;
 
@@ -53,9 +53,9 @@ export default abstract class DynamoDBORMBase {
 
   abstract async limit(limitNumaber: number): Promise<Map<string, any>[]>;
 
-  protected async loadTableInfo(){
+  protected async loadTableInfo() {
     const dynamoDB = new AWS.DynamoDB();
-    const tableInfo = await dynamoDB.describeTable({TableName: this.tableName})
+    const tableInfo = await dynamoDB.describeTable({ TableName: this.tableName });
     this.tableInfo = tableInfo.Table;
     return tableInfo.Table;
   }
@@ -71,8 +71,8 @@ export default abstract class DynamoDBORMBase {
   /**
    * clear cathing Memory;
    */
-  static clear(): void{
+  static clear(): void {
     this.awsConfig = {};
-    this.tableInfos = {}
-  };
+    this.tableInfos = {};
+  }
 }

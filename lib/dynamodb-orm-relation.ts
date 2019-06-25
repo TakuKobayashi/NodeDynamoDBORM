@@ -5,14 +5,14 @@ import ScanOutput = DocumentClient.ScanOutput;
 import QueryOutput = DocumentClient.QueryOutput;
 
 export default class DynamoDBORMRelation extends DynamoDBORMBase {
-  private filterObject: { [s: string]: any }
-  private queryParams: QueryInput
+  private filterObject: { [s: string]: any };
+  private queryParams: QueryInput;
 
   constructor(tableName: string) {
     super(tableName);
     this.filterObject = {};
     this.queryParams = {
-      TableName: this.tableName
+      TableName: this.tableName,
     };
   }
 
@@ -22,7 +22,7 @@ export default class DynamoDBORMRelation extends DynamoDBORMBase {
    * @return {array[object]} all of table data.
    */
   where(filterObject: { [s: string]: any }): DynamoDBORMRelation {
-    this.filterObject = {...this.filterObject, filterObject}
+    this.filterObject = { ...this.filterObject, filterObject };
     return this;
   }
 
@@ -30,12 +30,12 @@ export default class DynamoDBORMRelation extends DynamoDBORMBase {
    * get all tables data.
    * @return {array[object]} all of table data.
    */
-  offset(offsetStart: { [s: string]: any }): DynamoDBORMRelation{
+  offset(offsetStart: { [s: string]: any }): DynamoDBORMRelation {
     this.queryParams.ExclusiveStartKey = offsetStart;
     return this;
   }
 
-  async load(): Promise<Map<string, any>[]>{
+  async load(): Promise<Map<string, any>[]> {
     const queryResult = await this.executeQuery();
     return queryResult.Items as Map<string, any>[];
   }
@@ -45,7 +45,7 @@ export default class DynamoDBORMRelation extends DynamoDBORMBase {
    * @return {array[object]} all of table data.
    */
   async count(): Promise<Number> {
-    this.queryParams.Select = "COUNT";
+    this.queryParams.Select = 'COUNT';
     const queryResult = await this.executeQuery();
     return queryResult.Count;
   }
@@ -55,7 +55,7 @@ export default class DynamoDBORMRelation extends DynamoDBORMBase {
    * @return {boolean} all of table data.
    */
   async exists(filterObject: { [s: string]: any } = {}): Promise<boolean> {
-    this.filterObject = {...this.filterObject, filterObject}
+    this.filterObject = { ...this.filterObject, filterObject };
     this.queryParams.Limit = 1;
     const countNumber = await this.count();
     return countNumber > 0;
@@ -65,16 +65,16 @@ export default class DynamoDBORMRelation extends DynamoDBORMBase {
    * get all tables data.
    * @return {array[object]} all of table data.
    */
-  async limit(limitNumaber: number): Promise<Map<string, any>[]>{
+  async limit(limitNumaber: number): Promise<Map<string, any>[]> {
     this.queryParams.Limit = limitNumaber;
     const queryResult = await this.executeQuery();
     return queryResult.Items as Map<string, any>[];
   }
 
   private async executeQuery(): Promise<QueryOutput | ScanOutput> {
-    if(this.filterObject && Object.keys(this.filterObject).length > 0){
+    if (this.filterObject && Object.keys(this.filterObject).length > 0) {
       return this.dynamoClient.query(this.queryParams).promise();
-    }else{
+    } else {
       return this.dynamoClient.scan(this.queryParams).promise();
     }
   }
