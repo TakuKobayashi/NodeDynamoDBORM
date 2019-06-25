@@ -1,6 +1,6 @@
 import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_placeholders';
 import { APIVersions, ConfigurationOptions } from 'aws-sdk/lib/config';
-import { DocumentClient } from 'aws-sdk/clients/dynamodb';
+import { DocumentClient, TableDescription } from 'aws-sdk/clients/dynamodb';
 import DynamoDBORMRelation from './dynamodb-orm-relation';
 
 const AWS = require('aws-sdk');
@@ -8,7 +8,9 @@ const AWS = require('aws-sdk');
 export default abstract class DynamoDBORMBase {
   public dynamoClient: DocumentClient;
   public tableName: string;
+  public tableInfo: TableDescription;
   private static awsConfig: { [key: string]: any };
+  private static tableInfos: {[tableName: string]: TableDescription}
 
   constructor(tableName: string) {
     const processEnv = process.env;
@@ -31,6 +33,14 @@ export default abstract class DynamoDBORMBase {
     }
     this.dynamoClient = new AWS.DynamoDB.DocumentClient();
     this.tableName = tableName;
+
+    if(DynamoDBORMBase.tableInfos[tableName]) {
+      this.tableInfo = DynamoDBORMBase.tableInfos[tableName];
+    }else{
+      this.loadTableInfo().then(tableInfo => {
+        DynamoDBORMBase.tableInfos[this.tableName] = tableInfo;
+      });
+    }
   }
 
   abstract where(filterObject: { [s: string]: any }): DynamoDBORMRelation;
@@ -41,6 +51,13 @@ export default abstract class DynamoDBORMBase {
 
   abstract async limit(limitNumaber: number): Promise<Map<string, any>[]>;
 
+  protected async loadTableInfo(){
+    const dynamoDB = new AWS.DynamoDB();
+    const tableInfo = await dynamoDB.describeTable({TableName: this.tableName})
+    this.tableInfo = tableInfo.Table;
+    return tableInfo.Table;
+  }
+
   /**
    * update AWS Config;
    */
@@ -48,4 +65,12 @@ export default abstract class DynamoDBORMBase {
     this.awsConfig = config;
     AWS.config.update(config);
   }
+
+  /**
+   * clear cathing Memory;
+   */
+  static clear(): void{
+    this.awsConfig = {};
+    this.tableInfos = {}
+  };
 }
