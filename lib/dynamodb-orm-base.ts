@@ -77,12 +77,12 @@ export default abstract class DynamoDBORMBase {
       if (Array.isArray(filterObject[attrName])) {
         const values = filterObject[attrName] as any[];
         const placeHolderAttrValues = [];
-        for (let i = 0;i < values.length;++i) {
-          const placeHolderName = [':', attrName, i.toString()].join('')
+        for (let i = 0; i < values.length; ++i) {
+          const placeHolderName = [':', attrName, i.toString()].join('');
           expressionAttributeValues[placeHolderName] = values[i];
           placeHolderAttrValues.push(placeHolderName);
         }
-        const placeHolderAttrValue = ["IN(", placeHolderAttrValues.join(","), ")"].join("")
+        const placeHolderAttrValue = ['IN(', placeHolderAttrValues.join(','), ')'].join('');
         if (await this.isPrimaryKey(attrName)) {
           keyConditionExpressionFactors.push([placeHolderAttrName, placeHolderAttrValue].join(' '));
         } else {
