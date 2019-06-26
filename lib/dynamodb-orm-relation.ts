@@ -22,7 +22,7 @@ export default class DynamoDBORMRelation extends DynamoDBORMBase {
    * @return {array[object]} all of table data.
    */
   where(filterObject: { [s: string]: any }): DynamoDBORMRelation {
-    this.filterObject = { ...this.filterObject, filterObject };
+    this.filterObject = { ...this.filterObject, ...filterObject };
     return this;
   }
 
