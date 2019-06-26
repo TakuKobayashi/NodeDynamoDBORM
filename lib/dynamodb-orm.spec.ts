@@ -365,6 +365,18 @@ describe('DynamoDBORM', () => {
       ]);
     });
 
+    it('where In', async () => {
+      await dynamodbOrm.import([
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle1'), Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle2'), Title: 'hello' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle3'), Title: 'world' },
+      ]);
+      expect(await dynamodbOrm.where({ ArtistId: 1, Title: ['hello', 'world'] }).load()).toEqual([
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle2'), Title: 'hello' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle3'), Title: 'world' },
+      ]);
+    });
+
     it('offset', async () => {
       await dynamodbOrm.import([
         { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle1'), Title: 'happy birthday' },
