@@ -35,6 +35,10 @@ export default abstract class DynamoDBORMBase {
     this.dynamoClient = new AWS.DynamoDB.DocumentClient();
     this.tableName = tableName;
 
+    if(!DynamoDBORMBase.tableInfos){
+      DynamoDBORMBase.tableInfos = {}
+    }
+
     if (DynamoDBORMBase.tableInfos[tableName]) {
       this.tableInfo = DynamoDBORMBase.tableInfos[tableName];
     } else {
@@ -56,7 +60,7 @@ export default abstract class DynamoDBORMBase {
 
   protected async loadTableInfo() {
     const dynamoDB = new AWS.DynamoDB();
-    const tableInfo = await dynamoDB.describeTable({ TableName: this.tableName });
+    const tableInfo = await dynamoDB.describeTable({ TableName: this.tableName }).promise();
     this.tableInfo = tableInfo.Table;
     return tableInfo.Table;
   }
@@ -81,20 +85,23 @@ export default abstract class DynamoDBORMBase {
 
     const keyConditionExpression = keyConditionExpressionFactors.join(' AND ');
     const filterExpression = filterExpressionFactors.join(' AND ');
-    return {
+    const result :Partial<QueryInput> = {
       KeyConditionExpression: keyConditionExpression,
       ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
-      FilterExpression: filterExpression,
     };
+    if(filterExpression.length > 0){
+      result.FilterExpression = filterExpression;
+    }
+
+    return result;
   }
 
   private async isPrimaryKey(attrName: string): Promise<boolean>{
-    let tableInfo = DynamoDBORMBase.tableInfos[this.tableName];
-    if(!tableInfo){
-      tableInfo = await this.loadTableInfo();
+    if(!this.tableInfo){
+      this.tableInfo = await this.loadTableInfo();
     }
-    return tableInfo.KeySchema.some((schema) => schema.AttributeName === attrName);
+    return this.tableInfo.KeySchema.some((schema) => schema.AttributeName === attrName);
   }
 
   /**
