@@ -22,19 +22,10 @@ export default class DynamoDBORM extends DynamoDBORMBase {
    * @return {array[object]} dynamodb table row objects
    */
   async findByAll(filterObject: { [s: string]: any }): Promise<Map<string, any>[]> {
-    const keyNames = Object.keys(filterObject);
-    const keyConditionExpression = keyNames.map((keyName) => '#' + keyName + ' = ' + ':' + keyName).join(' AND ');
-    const expressionAttributeNames = {};
-    const expressionAttributeValues = {};
-    for (const keyName of keyNames) {
-      expressionAttributeNames['#' + keyName] = keyName;
-      expressionAttributeValues[':' + keyName] = filterObject[keyName];
-    }
+    const filterQueryExpressions = await this.generateFilterQueryExpression(filterObject);
     const params = {
       TableName: this.tableName,
-      KeyConditionExpression: keyConditionExpression,
-      ExpressionAttributeNames: expressionAttributeNames,
-      ExpressionAttributeValues: expressionAttributeValues,
+      ...filterQueryExpressions,
     };
     const queryResult = await this.dynamoClient.query(params).promise();
     return queryResult.Items as Map<string, any>[];
@@ -110,12 +101,44 @@ export default class DynamoDBORM extends DynamoDBORMBase {
 
   /**
    * get all tables data.
-   * @param {string} tablename.
    * @return {array[object]} all of table data.
    */
-  async count(): Promise<Number> {
-    const scanResult = await this.dynamoClient.scan({ TableName: this.tableName }).promise();
+  where(filterObject: { [s: string]: any }): DynamoDBORMRelation {
+    return new DynamoDBORMRelation(this.tableName).where(filterObject);
+  }
+
+  /**
+   * get all tables data.
+   * @return {array[object]} all of table data.
+   */
+  offset(offsetStart: { [s: string]: any }): DynamoDBORMRelation {
+    return new DynamoDBORMRelation(this.tableName).offset(offsetStart);
+  }
+
+  /**
+   * get all tables data.
+   * @return {array[object]} all of table data.
+   */
+  async limit(limitNumaber: number): Promise<Map<string, any>[]> {
+    const scanResult = await this.dynamoClient.scan({ TableName: this.tableName, Limit: limitNumaber }).promise();
+    return scanResult.Items as Map<string, any>[];
+  }
+
+  /**
+   * get all tables data.
+   * @return {number} all of table data.
+   */
+  async count(): Promise<number> {
+    const scanResult = await this.dynamoClient.scan({ TableName: this.tableName, Select: 'COUNT' }).promise();
     return scanResult.Count;
+  }
+
+  /**
+   * get all tables data.
+   * @return {boolean} all of table data.
+   */
+  async exists(filterObject: { [s: string]: any } = {}): Promise<boolean> {
+    return this.where(filterObject).exists();
   }
 
   /**

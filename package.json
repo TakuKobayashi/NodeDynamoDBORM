@@ -1,9 +1,9 @@
 {
   "name": "node-dynamodb-orm",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "author": "TakuKobayashi",
   "bugs": {
-    "url": "https://github.com/TakuKobayashi/NodeDynamoORM/issues"
+    "url": "https://github.com/TakuKobayashi/NodeDynamoDBORM/issues"
   },
   "dependencies": {
     "aws-sdk": "^2.480.0"
@@ -28,7 +28,7 @@
   "files": [
     "dist"
   ],
-  "homepage": "https://github.com/TakuKobayashi/NodeDynamoORM#readme",
+  "homepage": "https://github.com/TakuKobayashi/NodeDynamoDBORM#readme",
   "keywords": [
     "AWS",
     "DynamoDB",
@@ -38,7 +38,7 @@
   "main": "dist/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TakuKobayashi/NodeDynamoORM.git"
+    "url": "git+https://github.com/TakuKobayashi/NodeDynamoDBORM.git"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
