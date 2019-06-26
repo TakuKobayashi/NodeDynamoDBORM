@@ -2,6 +2,7 @@ import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_pla
 import { APIVersions, ConfigurationOptions } from 'aws-sdk/lib/config';
 import { DocumentClient, TableDescription } from 'aws-sdk/clients/dynamodb';
 import DynamoDBORMRelation from './dynamodb-orm-relation';
+import QueryInput = DocumentClient.QueryInput;
 
 const AWS = require('aws-sdk');
 
@@ -58,6 +59,42 @@ export default abstract class DynamoDBORMBase {
     const tableInfo = await dynamoDB.describeTable({ TableName: this.tableName });
     this.tableInfo = tableInfo.Table;
     return tableInfo.Table;
+  }
+
+  protected async generateFilterQueryExpression(filterObject: { [s: string]: any }): Promise<Partial<QueryInput>>{
+    const attrNames = Object.keys(filterObject);
+    const keyConditionExpressionFactors = [];
+    const filterExpressionFactors = [];
+    const expressionAttributeNames = {};
+    const expressionAttributeValues = {};
+    for (const attrName of attrNames) {
+      const placeHolderAttrName = ['#', attrName].join("")
+      const placeHolderAttrValue = [':', attrName].join("")
+      expressionAttributeNames[placeHolderAttrName] = attrName;
+      expressionAttributeValues[placeHolderAttrValue] = filterObject[attrName];
+      if(await this.isPrimaryKey(attrName)){
+        keyConditionExpressionFactors.push([placeHolderAttrName, placeHolderAttrValue].join(' = '))
+      }else{
+        filterExpressionFactors.push([placeHolderAttrName, placeHolderAttrValue].join(' = '))
+      }
+    }
+
+    const keyConditionExpression = keyConditionExpressionFactors.join(' AND ');
+    const filterExpression = filterExpressionFactors.join(' AND ');
+    return {
+      KeyConditionExpression: keyConditionExpression,
+      ExpressionAttributeNames: expressionAttributeNames,
+      ExpressionAttributeValues: expressionAttributeValues,
+      FilterExpression: filterExpression,
+    };
+  }
+
+  private async isPrimaryKey(attrName: string): Promise<boolean>{
+    let tableInfo = DynamoDBORMBase.tableInfos[this.tableName];
+    if(!tableInfo){
+      tableInfo = await this.loadTableInfo();
+    }
+    return tableInfo.KeySchema.some((schema) => schema.AttributeName === attrName);
   }
 
   /**

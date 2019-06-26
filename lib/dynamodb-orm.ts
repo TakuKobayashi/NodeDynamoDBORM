@@ -22,19 +22,10 @@ export default class DynamoDBORM extends DynamoDBORMBase {
    * @return {array[object]} dynamodb table row objects
    */
   async findByAll(filterObject: { [s: string]: any }): Promise<Map<string, any>[]> {
-    const keyNames = Object.keys(filterObject);
-    const keyConditionExpression = keyNames.map((keyName) => '#' + keyName + ' = ' + ':' + keyName).join(' AND ');
-    const expressionAttributeNames = {};
-    const expressionAttributeValues = {};
-    for (const keyName of keyNames) {
-      expressionAttributeNames['#' + keyName] = keyName;
-      expressionAttributeValues[':' + keyName] = filterObject[keyName];
-    }
+    const filterQueryExpressions = await this.generateFilterQueryExpression(filterObject);
     const params = {
       TableName: this.tableName,
-      KeyConditionExpression: keyConditionExpression,
-      ExpressionAttributeNames: expressionAttributeNames,
-      ExpressionAttributeValues: expressionAttributeValues,
+      ...filterQueryExpressions,
     };
     const queryResult = await this.dynamoClient.query(params).promise();
     return queryResult.Items as Map<string, any>[];
