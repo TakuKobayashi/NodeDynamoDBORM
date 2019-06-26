@@ -108,7 +108,7 @@ export default abstract class DynamoDBORMBase {
    * update AWS Config;
    */
   static updateConfig(config: ConfigurationOptions & ConfigurationServicePlaceholders & APIVersions & { [key: string]: any }) {
-    this.awsConfig = config;
+    DynamoDBORMBase.awsConfig = config;
     AWS.config.update(config);
   }
 
@@ -116,7 +116,7 @@ export default abstract class DynamoDBORMBase {
    * clear cathing Memory;
    */
   static clear(): void {
-    this.awsConfig = {};
-    this.tableInfos = {};
+    DynamoDBORMBase.awsConfig = {};
+    DynamoDBORMBase.tableInfos = {};
   }
 }

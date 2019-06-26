@@ -10,6 +10,10 @@ beforeEach(() => {
   DynamoDBORM.updateConfig({ region: region, endpoint: new AWS.Endpoint(endpoint) });
 });
 
+afterEach(() => {
+  DynamoDBORM.clear();
+});
+
 describe('DynamoDBORM', () => {
   describe('HashKey is string', () => {
     let dynamodbOrm: DynamoDBORM;
@@ -199,7 +203,7 @@ describe('DynamoDBORM', () => {
             AttributeType: 'N',
           },
           {
-            AttributeName: 'Major',
+            AttributeName: 'SongTitle',
             AttributeType: 'B',
           },
         ],
@@ -209,7 +213,7 @@ describe('DynamoDBORM', () => {
             KeyType: 'HASH',
           },
           {
-            AttributeName: 'Major',
+            AttributeName: 'SongTitle',
             KeyType: 'RANGE',
           },
         ],
@@ -233,38 +237,46 @@ describe('DynamoDBORM', () => {
     });
 
     it('create', async () => {
-      const musicObj = await dynamodbOrm.create({ ArtistId: 1, Major: true });
-      expect(musicObj).toEqual({ ArtistId: 1, Major: true });
+      const musicObj = await dynamodbOrm.create({ ArtistId: 1, SongTitle: new Buffer('sampleSongTitle') });
+      expect(musicObj).toEqual({ ArtistId: 1, SongTitle: new Buffer('sampleSongTitle') });
     });
 
     it('findBy', async () => {
-      await dynamodbOrm.create({ ArtistId: 1, Major: false, CreaterName: 'sampleName' });
-      expect(await dynamodbOrm.findBy({ ArtistId: 1, Major: false })).toEqual({
+      await dynamodbOrm.create({ ArtistId: 1, SongTitle: new Buffer('sampleSongTitle'), CreaterName: 'sampleName' });
+      expect(await dynamodbOrm.findBy({ ArtistId: 1, SongTitle: new Buffer('sampleSongTitle') })).toEqual({
         ArtistId: 1,
-        Major: false,
+        SongTitle: new Buffer('sampleSongTitle'),
         CreaterName: 'sampleName',
       });
     });
 
     it('update', async () => {
-      await dynamodbOrm.create({ ArtistId: 1, Major: true, CreaterName: 'sampleName', Title: 'happy birthday' });
-      const updateMusicObj = await dynamodbOrm.update({ ArtistId: 1, Major: true, Title: 'happy birthday' }, { CreaterName: 'updateName' });
+      await dynamodbOrm.create({
+        ArtistId: 1,
+        SongTitle: new Buffer('sampleSongTitle'),
+        CreaterName: 'sampleName',
+        Title: 'happy birthday',
+      });
+      const updateMusicObj = await dynamodbOrm.update(
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle') },
+        { CreaterName: 'updateName' },
+      );
       expect(updateMusicObj).toEqual({
         ArtistId: 1,
-        Major: true,
+        SongTitle: new Buffer('sampleSongTitle'),
         CreaterName: 'updateName',
         Title: 'happy birthday',
       });
-      expect(await dynamodbOrm.findBy({ ArtistId: 1, Major: true })).toEqual({
+      expect(await dynamodbOrm.findBy({ ArtistId: 1, SongTitle: new Buffer('sampleSongTitle') })).toEqual({
         ArtistId: 1,
-        Major: true,
+        SongTitle: new Buffer('sampleSongTitle'),
         CreaterName: 'updateName',
         Title: 'happy birthday',
       });
     });
 
     it('delete', async () => {
-      const musicObj = await dynamodbOrm.create({ ArtistId: 1, Major: true });
+      const musicObj = await dynamodbOrm.create({ ArtistId: 1, SongTitle: new Buffer('sampleSongTitle') });
       const deletedObj = await dynamodbOrm.delete(musicObj);
       expect(deletedObj).toEqual(musicObj);
       expect(await dynamodbOrm.findBy(musicObj)).toBeUndefined();
@@ -272,107 +284,108 @@ describe('DynamoDBORM', () => {
 
     it('import', async () => {
       await dynamodbOrm.import([
-        { ArtistId: 1, Major: true, Title: 'happy birthday' },
-        { ArtistId: 2, Major: false, tracks: [{ Title: 'hello' }, { Title: 'world' }] },
-        { ArtistId: 3, Major: false, options: { soldout: false, price: 100 } },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle'), Title: 'happy birthday' },
+        { ArtistId: 2, SongTitle: new Buffer('sampleSongTitle'), tracks: [{ Title: 'hello' }, { Title: 'world' }] },
+        { ArtistId: 3, SongTitle: new Buffer('sampleSongTitle'), options: { soldout: false, price: 100 } },
       ]);
-      expect(await dynamodbOrm.findBy({ ArtistId: 1, Major: true })).toEqual({
+      expect(await dynamodbOrm.findBy({ ArtistId: 1, SongTitle: new Buffer('sampleSongTitle') })).toEqual({
         ArtistId: 1,
-        Major: true,
+        SongTitle: new Buffer('sampleSongTitle'),
         Title: 'happy birthday',
       });
-      expect(await dynamodbOrm.findBy({ ArtistId: 2, Major: false })).toEqual({
+      expect(await dynamodbOrm.findBy({ ArtistId: 2, SongTitle: new Buffer('sampleSongTitle') })).toEqual({
         ArtistId: 2,
-        Major: false,
+        SongTitle: new Buffer('sampleSongTitle'),
         tracks: [{ Title: 'hello' }, { Title: 'world' }],
       });
-      expect(await dynamodbOrm.findBy({ ArtistId: 3, Major: false })).toEqual({
+      expect(await dynamodbOrm.findBy({ ArtistId: 3, SongTitle: new Buffer('sampleSongTitle') })).toEqual({
         ArtistId: 3,
-        Major: false,
+        SongTitle: new Buffer('sampleSongTitle'),
         options: { soldout: false, price: 100 },
       });
     });
 
     it('findByAll', async () => {
       await dynamodbOrm.import([
-        { ArtistId: 1, Major: false, Title: 'happy birthday' },
-        { ArtistId: 1, Major: true, Title: 'happy birthday' },
-        { ArtistId: 2, Major: true, Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle1'), Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
+        { ArtistId: 2, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
       ]);
-      expect(await dynamodbOrm.findByAll({ Artist: 1, Title: 'happy birthday' })).toEqual([
-        { ArtistId: 1, Major: false, Title: 'happy birthday' },
-        { ArtistId: 1, Major: true, Title: 'happy birthday' },
+      expect(await dynamodbOrm.findByAll({ ArtistId: 1, Title: 'happy birthday' })).toEqual([
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle1'), Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
       ]);
     });
 
     it('all', async () => {
       await dynamodbOrm.import([
-        { ArtistId: 1, Major: false, Title: 'happy birthday' },
-        { ArtistId: 1, Major: true, Title: 'happy birthday' },
-        { ArtistId: 2, Major: true, Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle1'), Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
+        { ArtistId: 2, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
       ]);
       const allData = await dynamodbOrm.all();
       expect(allData).toEqual([
-        { ArtistId: 1, Major: false, Title: 'happy birthday' },
-        { ArtistId: 1, Major: true, Title: 'happy birthday' },
-        { ArtistId: 2, Major: true, Title: 'happy birthday' },
+        { ArtistId: 2, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle1'), Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
       ]);
     });
 
     it('count', async () => {
       await dynamodbOrm.import([
-        { ArtistId: 1, Major: false, Title: 'happy birthday' },
-        { ArtistId: 1, Major: true, Title: 'happy birthday' },
-        { ArtistId: 2, Major: true, Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle1'), Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
+        { ArtistId: 2, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
       ]);
       expect(await dynamodbOrm.count()).toBe(3);
     });
 
     it('deleteAll', async () => {
       await dynamodbOrm.import([
-        { ArtistId: 1, Major: false, Title: 'happy birthday' },
-        { ArtistId: 1, Major: true, Title: 'happy birthday' },
-        { ArtistId: 2, Major: true, Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle1'), Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
+        { ArtistId: 2, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
       ]);
       await dynamodbOrm.deleteAll([
-        { ArtistId: 1, Major: false, Title: 'happy birthday' },
-        { ArtistId: 1, Major: true, Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle1') },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle2') },
       ]);
       expect(await dynamodbOrm.count()).toBe(1);
     });
 
     it('where', async () => {
       await dynamodbOrm.import([
-        { ArtistId: 1, Major: false, Title: 'happy birthday' },
-        { ArtistId: 1, Major: true, Title: 'happy birthday' },
-        { ArtistId: 2, Major: true, Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle1'), Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
+        { ArtistId: 2, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
       ]);
-      expect(await dynamodbOrm.where({ Artist: 1, Title: 'happy birthday' }).load()).toEqual([
-        { ArtistId: 1, Major: false, Title: 'happy birthday' },
-        { ArtistId: 1, Major: true, Title: 'happy birthday' },
+      expect(await dynamodbOrm.where({ ArtistId: 1, Title: 'happy birthday' }).load()).toEqual([
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle1'), Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
       ]);
     });
 
     it('offset', async () => {
       await dynamodbOrm.import([
-        { ArtistId: 1, Major: false, Title: 'happy birthday' },
-        { ArtistId: 1, Major: true, Title: 'happy birthday' },
-        { ArtistId: 2, Major: true, Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle1'), Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
+        { ArtistId: 2, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
+        { ArtistId: 3, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
       ]);
-      expect(await dynamodbOrm.offset({ ArtistId: 1, Major: true }).load()).toEqual([
-        { ArtistId: 2, Major: true, Title: 'happy birthday' },
+      expect(await dynamodbOrm.offset({ ArtistId: 1, SongTitle: new Buffer('sampleSongTitle2') }).load()).toEqual([
+        { ArtistId: 3, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
       ]);
     });
 
     it('limit', async () => {
       await dynamodbOrm.import([
-        { ArtistId: 1, Major: false, Title: 'happy birthday' },
-        { ArtistId: 1, Major: true, Title: 'happy birthday' },
-        { ArtistId: 2, Major: true, Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle1'), Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
+        { ArtistId: 2, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
       ]);
       expect(await dynamodbOrm.limit(2)).toEqual([
-        { ArtistId: 1, Major: false, Title: 'happy birthday' },
-        { ArtistId: 1, Major: true, Title: 'happy birthday' },
+        { ArtistId: 2, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle1'), Title: 'happy birthday' },
       ]);
     });
   });
