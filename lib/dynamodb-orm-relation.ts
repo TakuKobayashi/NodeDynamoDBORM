@@ -74,7 +74,7 @@ export default class DynamoDBORMRelation extends DynamoDBORMBase {
   private async executeQuery(): Promise<QueryOutput | ScanOutput> {
     if (this.filterObject && Object.keys(this.filterObject).length > 0) {
       const filterQueryExpressions = await this.generateFilterQueryExpression(this.filterObject);
-      return this.dynamoClient.query({...this.queryParams, ...filterQueryExpressions}).promise();
+      return this.dynamoClient.query({ ...this.queryParams, ...filterQueryExpressions }).promise();
     } else {
       return this.dynamoClient.scan(this.queryParams).promise();
     }
