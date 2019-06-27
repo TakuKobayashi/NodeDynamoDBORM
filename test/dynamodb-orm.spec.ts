@@ -1,4 +1,4 @@
-import DynamoDBORM from './dynamodb-orm';
+import DynamoDBORM from '../lib/dynamodb-orm';
 
 const AWS = require('aws-sdk');
 
@@ -123,6 +123,15 @@ describe('DynamoDBORM', () => {
         { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle1' },
         { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle2' },
       ]);
+    });
+
+    it('exists', async () => {
+      await dynamodbOrm.import([
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle1' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle2' },
+      ]);
+      expect(await dynamodbOrm.exists({ Artist: 'sampleArtist' })).toBe(true);
+      expect(await dynamodbOrm.exists({ Artist: 'sampleArtist', SongTitle: 'sampleSongTitle3' })).toBe(false);
     });
 
     it('all', async () => {
@@ -375,6 +384,16 @@ describe('DynamoDBORM', () => {
         { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle2'), Title: 'hello' },
         { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle3'), Title: 'world' },
       ]);
+    });
+
+    it('exists', async () => {
+      await dynamodbOrm.import([
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle1'), Title: 'happy birthday' },
+        { ArtistId: 1, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
+        { ArtistId: 2, SongTitle: new Buffer('sampleSongTitle2'), Title: 'happy birthday' },
+      ]);
+      expect(await dynamodbOrm.exists({ ArtistId: 1, Title: 'happy birthday' })).toBe(true);
+      expect(await dynamodbOrm.exists({ ArtistId: 3, Title: 'happy birthday' })).toBe(false);
     });
 
     it('offset', async () => {

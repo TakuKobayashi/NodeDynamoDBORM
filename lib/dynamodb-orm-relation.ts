@@ -55,7 +55,7 @@ export default class DynamoDBORMRelation extends DynamoDBORMBase {
    * @return {boolean} all of table data.
    */
   async exists(filterObject: { [s: string]: any } = {}): Promise<boolean> {
-    this.filterObject = { ...this.filterObject, filterObject };
+    this.filterObject = { ...this.filterObject, ...filterObject };
     this.queryParams.Limit = 1;
     const countNumber = await this.count();
     return countNumber > 0;
