@@ -32,6 +32,14 @@ export class DynamoDBORMRelation extends DynamoDBORMBase {
     return this;
   }
 
+  or(filter: { [s: string]: any } | string = {}): DynamoDBORMRelation {
+    return this;
+  }
+
+  not(filter: { [s: string]: any } | string = {}): DynamoDBORMRelation {
+    return this;
+  }
+
   /**
    * get all tables data.
    * @return {array[object]} all of table data.
