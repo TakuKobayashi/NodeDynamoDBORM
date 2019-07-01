@@ -48,7 +48,7 @@ export abstract class DynamoDBORMBase {
     }
   }
 
-  abstract where(filterObject: { [s: string]: any }): DynamoDBORMRelation;
+  abstract where(filter: { [s: string]: any } | string): DynamoDBORMRelation;
 
   abstract offset(offsetStart: { [s: string]: any }): DynamoDBORMRelation;
 

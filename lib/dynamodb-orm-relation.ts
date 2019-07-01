@@ -7,6 +7,7 @@ import QueryOutput = DocumentClient.QueryOutput;
 export class DynamoDBORMRelation extends DynamoDBORMBase {
   private filterObject: { [s: string]: any };
   private queryParams: QueryInput;
+  private queryStrings: string[];
 
   constructor(tableName: string) {
     super(tableName);
@@ -14,6 +15,7 @@ export class DynamoDBORMRelation extends DynamoDBORMBase {
     this.queryParams = {
       TableName: this.tableName,
     };
+    this.queryStrings = [];
   }
 
   /**
@@ -21,8 +23,12 @@ export class DynamoDBORMRelation extends DynamoDBORMBase {
    * @param {string} tablename.
    * @return {array[object]} all of table data.
    */
-  where(filterObject: { [s: string]: any }): DynamoDBORMRelation {
-    this.filterObject = { ...this.filterObject, ...filterObject };
+  where(filter: { [s: string]: any } | string = {}): DynamoDBORMRelation {
+    if(typeof filter === "string"){
+      this.queryStrings.push(filter);
+    }else{
+      this.filterObject = { ...this.filterObject, ...filter };
+    }
     return this;
   }
 

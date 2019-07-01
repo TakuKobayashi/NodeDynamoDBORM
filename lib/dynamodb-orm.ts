@@ -143,7 +143,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
    * @param {object} filterObject is filtering key name and value Object.
    * @return {DynamoDBORMRelation} method chainable class.
    */
-  where(filterObject: { [s: string]: any }): DynamoDBORMRelation {
+  where(filterObject: { [s: string]: any } | string = {}): DynamoDBORMRelation {
     return new DynamoDBORMRelation(this.tableName).where(filterObject);
   }
 
