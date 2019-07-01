@@ -1,5 +1,6 @@
-import { DynamoDBORMRelation } from './dynamodb-orm-relation';
-import { DynamoDBORMBase } from './dynamodb-orm-base';
+import DynamoDBORMRelation from './dynamodb-orm-relation';
+import DynamoDBORMBase from './dynamodb-orm-base';
+import DynamoDBORMTransaction from './dynamodb-orm-transaction';
 
 export class DynamoDBORM extends DynamoDBORMBase {
   /**
@@ -183,5 +184,11 @@ export class DynamoDBORM extends DynamoDBORMBase {
       })
       .promise();
     return result;
+  }
+
+  transaction(callback: (transactionOrm: DynamoDBORMTransaction) => void){
+    const transactionOrm = new DynamoDBORMTransaction(this.tableName);
+    callback(transactionOrm);
+    transactionOrm.execute();
   }
 }
