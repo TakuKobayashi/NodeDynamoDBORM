@@ -58,6 +58,10 @@ export abstract class DynamoDBORMBase {
 
   abstract async limit(limitNumaber: number): Promise<{ [s: string]: any }[]>;
 
+  abstract async findEach(callback: (record: { [s: string]: any }) => void, start:{ [s: string]: any }, batchSize: number): Promise<void>;
+
+  abstract async findInBatches(callback: (records: { [s: string]: any }[]) => void, start:{ [s: string]: any }, batchSize: number): Promise<void>;
+
   protected async loadTableInfo() {
     const dynamoDB = new AWS.DynamoDB();
     const tableInfo = await dynamoDB.describeTable({ TableName: this.tableName }).promise();

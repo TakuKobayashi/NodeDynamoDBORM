@@ -184,6 +184,14 @@ export class DynamoDBORM extends DynamoDBORMBase {
     return this.where(filterObject).exists();
   }
 
+  async findEach(callback: (record: { [s: string]: any }) => void, start:{ [s: string]: any } = {}, batchSize: number = 1000): Promise<void>{
+
+  }
+
+  async findInBatches(callback: (records: { [s: string]: any }[]) => void, start:{ [s: string]: any } = {}, batchSize: number = 1000): Promise<void>{
+
+  }
+
   /**
    * import data to table
    * @param {array[object]} putObjects are objects will insert to dynamodb.
