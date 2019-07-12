@@ -4,7 +4,12 @@
     "declaration": true,
     "outDir": "dist"
   },
+  "include": [
+    "lib",
+  ],
   "exclude": [
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "node_modules",
+    "dist"
   ]
 }

@@ -1,7 +1,7 @@
-import DynamoDBORMRelation from './dynamodb-orm-relation';
-import DynamoDBORMBase from './dynamodb-orm-base';
+import { DynamoDBORMRelation } from './dynamodb-orm-relation';
+import { DynamoDBORMBase } from './dynamodb-orm-base';
 
-export default class DynamoDBORM extends DynamoDBORMBase {
+export class DynamoDBORM extends DynamoDBORMBase {
   /**
    * get data from primaryKeys.
    * @param {string, object} tablename and filter primaryKeys
