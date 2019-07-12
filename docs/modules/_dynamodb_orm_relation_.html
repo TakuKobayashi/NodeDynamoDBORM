@@ -3,17 +3,17 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>node-dynamodb-orm</title>
+	<title>&quot;dynamodb-orm-relation&quot; | node-dynamodb-orm</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="assets/css/main.css">
+	<link rel="stylesheet" href="../assets/css/main.css">
 </head>
 <body>
 <header>
 	<div class="tsd-page-toolbar">
 		<div class="container">
 			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="assets/js/search.js" data-base=".">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.js" data-base="..">
 					<div class="field">
 						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
 						<input id="tsd-search-field" type="text" />
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="index.html" class="title">node-dynamodb-orm</a>
+					<a href="../index.html" class="title">node-dynamodb-orm</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -53,84 +53,61 @@
 		<div class="container">
 			<ul class="tsd-breadcrumb">
 				<li>
-					<a href="globals.html">Globals</a>
+					<a href="../globals.html">Globals</a>
+				</li>
+				<li>
+					<a href="_dynamodb_orm_relation_.html">&quot;dynamodb-orm-relation&quot;</a>
 				</li>
 			</ul>
-			<h1> node-dynamodb-orm</h1>
+			<h1>External module &quot;dynamodb-orm-relation&quot;</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
-			<div class="tsd-panel tsd-typography">
-				<h1 id="nodedynamodborm">NodeDynamoDBORM</h1>
-				<h2 id="dynamodb-">DynamoDBのローカル環境での起動</h2>
-				<pre><code class="language-sh">docker-compose up</code></pre>
-				<p>DynamoDBサーバ起動後 <a href="http://localhost:8000/shell/">http://localhost:8000/shell/</a> にアクセスして各種設定を行う</p>
-				<h2 id="dynamodb-query-">DynamoDBでqueryの組み方</h2>
-				<h3 id="-">参考</h3>
-				<ul>
-					<li><a href="https://qiita.com/Yuki_BB3/items/83198b4d9daca7ccd746">Node.jsでDynamoDBを操作するためのチートシート[* DynamoDB.DocumentClient][AWS]</a></li>
-					<li><a href="https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html">Class: AWS.DynamoDB.DocumentClient</a></li>
-				</ul>
-				<h3 id="-">参考</h3>
-				<ul>
-					<li><a href="https://qiita.com/okashoi/items/f1c757279574d37b812e">Docker（Docker Compose）から DynamoDB Local を使う際にデータを永続化する</a></li>
-					<li><a href="https://dev.classmethod.jp/etc/try_dynamodb_local/">DynamoDB Localを試してみる</a></li>
-				</ul>
-				<h2 id="-">【参考】</h2>
-				<ul>
-					<li><a href="https://qiita.com/yoskhdia/items/6897f66bdf93017ca033">DynamoDBでのポイントまとめ</a></li>
-					<li><a href="https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/developerguide/best-practices.html">DynamoDB のベストプラクティス</a></li>
-				</ul>
-				<h1 id="-">メモ</h1>
-				<h2 id="query-">queryメソッドに突っ込めるパラメータについて</h2>
-				<p><a href="https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#query-property">https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#query-property</a></p>
-				<ul>
-					<li>Select: 取得するデータを絞り込むことができる。 ALL_ATTRIBUTES / COUNT のどちらかしか基本的に使わない</li>
-					<li>ReturnConsumedCapacity: リクエストをぶっ放したら、どれくらいのCapacityを消費して処理を行なったのか取得することができる(負荷計測用) : デファオルとは NONE で INDEXESが一番詳細</li>
-					<li>Limit: 取得する件数を絞り込める</li>
-					<li>KeyConditionExpression: プライマリキー限定(ハッシュキー)、条件式を文字列で記述できるもの。</li>
-					<li>KeyConditionExpression: プライマリキー限定、条件式を文字列で記述できるもの。</li>
-					<li>ExpressionAttributeValues: 検索値のプレースホルダ。KeyConditionExpressionとともに必須パラメータ</li>
-					<li>ExpressionAttributeNames: 属性名(カラム名)のプレースホルダ。属性名(カラム名)にDynamoDBの予約を語を使っていなければ別にいらない。</li>
-					<li>FilterExpression: プライマリーキー以外の属性での検索式を組み立てたいのなら使う必要あり</li>
-				</ul>
-				<p>参考</p>
-				<ul>
-					<li><a href="https://takamints.hatenablog.jp/entry/2016/02/25/query-aws-dynamodb-by-aws-lambda-function">2016-02-23
-					AWS LambdaからDynamoDBをQueryする</a></li>
-					<li><a href="https://qiita.com/HagaSpa/items/1fc831acf29dcd133b40">DynamoDBの全データ削除について</a></li>
-				</ul>
-				<p><a href="https://blog.brains-tech.co.jp/entry/2015/09/30/222148#%E3%83%86%E3%83%BC%E3%83%96%E3%83%AB%E3%82%92%E3%81%BE%E3%81%A8%E3%82%81%E3%82%8B%E6%A9%9F%E8%83%BD%E3%81%8C%E3%81%AA%E3%81%84">https://blog.brains-tech.co.jp/entry/2015/09/30/222148#%E3%83%86%E3%83%BC%E3%83%96%E3%83%AB%E3%82%92%E3%81%BE%E3%81%A8%E3%82%81%E3%82%8B%E6%A9%9F%E8%83%BD%E3%81%8C%E3%81%AA%E3%81%84</a></p>
-			</div>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section ">
+							<h3>Classes</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-class tsd-parent-kind-external-module"><a href="../classes/_dynamodb_orm_relation_.dynamodbormrelation.html" class="tsd-kind-icon">DynamoDBORMRelation</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 			<nav class="tsd-navigation primary">
 				<ul>
 					<li class="globals  ">
-						<a href="globals.html"><em>Globals</em></a>
+						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="modules/_comparison_operators_.html">"comparison-<wbr>operators"</a>
+						<a href="_comparison_operators_.html">"comparison-<wbr>operators"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="modules/_dynamodb_orm_.html">"dynamodb-<wbr>orm"</a>
+						<a href="_dynamodb_orm_.html">"dynamodb-<wbr>orm"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="modules/_dynamodb_orm_base_.html">"dynamodb-<wbr>orm-<wbr>base"</a>
+						<a href="_dynamodb_orm_base_.html">"dynamodb-<wbr>orm-<wbr>base"</a>
+					</li>
+					<li class="current tsd-kind-external-module">
+						<a href="_dynamodb_orm_relation_.html">"dynamodb-<wbr>orm-<wbr>relation"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="modules/_dynamodb_orm_relation_.html">"dynamodb-<wbr>orm-<wbr>relation"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_index_.html">"index"</a>
+						<a href="_index_.html">"index"</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
+					<li class=" tsd-kind-class tsd-parent-kind-external-module">
+						<a href="../classes/_dynamodb_orm_relation_.dynamodbormrelation.html" class="tsd-kind-icon">DynamoDBORMRelation</a>
+					</li>
 				</ul>
 			</nav>
 		</div>
@@ -199,7 +176,7 @@
 	<p>Generated using <a href="http://typedoc.org/" target="_blank">TypeDoc</a></p>
 </div>
 <div class="overlay"></div>
-<script src="assets/js/main.js"></script>
-<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
+<script src="../assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="../assets/js/search.js"><' + '/script>');</script>
 </body>
 </html>

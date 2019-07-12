@@ -35,3 +35,4 @@ lib/**/*.ts
 Dockerfile
 docker-compose.yml
 jest.config.*
+**/*.md

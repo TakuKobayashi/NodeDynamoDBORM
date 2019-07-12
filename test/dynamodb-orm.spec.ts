@@ -1,4 +1,4 @@
-import DynamoDBORM from '../lib/dynamodb-orm';
+import { DynamoDBORM } from '../lib/dynamodb-orm';
 
 const AWS = require('aws-sdk');
 

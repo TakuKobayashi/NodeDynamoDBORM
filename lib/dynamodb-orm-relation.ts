@@ -1,10 +1,10 @@
-import DynamoDBORMBase from './dynamodb-orm-base';
+import { DynamoDBORMBase } from './dynamodb-orm-base';
 import { QueryInput } from 'aws-sdk/clients/dynamodb';
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client';
 import ScanOutput = DocumentClient.ScanOutput;
 import QueryOutput = DocumentClient.QueryOutput;
 
-export default class DynamoDBORMRelation extends DynamoDBORMBase {
+export class DynamoDBORMRelation extends DynamoDBORMBase {
   private filterObject: { [s: string]: any };
   private queryParams: QueryInput;
 

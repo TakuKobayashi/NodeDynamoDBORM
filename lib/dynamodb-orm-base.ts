@@ -1,12 +1,12 @@
 import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_placeholders';
 import { APIVersions, ConfigurationOptions } from 'aws-sdk/lib/config';
 import { DocumentClient, TableDescription } from 'aws-sdk/clients/dynamodb';
-import DynamoDBORMRelation from './dynamodb-orm-relation';
+import { DynamoDBORMRelation } from './dynamodb-orm-relation';
 import QueryInput = DocumentClient.QueryInput;
 
 const AWS = require('aws-sdk');
 
-export default abstract class DynamoDBORMBase {
+export abstract class DynamoDBORMBase {
   public dynamoClient: DocumentClient;
   public tableName: string;
   public tableInfo: TableDescription;

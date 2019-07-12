@@ -1,6 +1,6 @@
 {
   "name": "node-dynamodb-orm",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "author": "TakuKobayashi",
   "bugs": {
     "url": "https://github.com/TakuKobayashi/NodeDynamoDBORM/issues"
@@ -43,7 +43,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "format": "prettier --config .prettierrc --write '**/*.{ts,js}'",
-    "docs": "typedoc --out docs/",
+    "docs": "typedoc --out docs/ && touch docs/.nojekyll",
     "jest": "jest -c jest.config.js"
   },
   "types": "dist/index.d.ts"
