@@ -56,7 +56,7 @@ export abstract class DynamoDBORMBase {
 
   abstract async exists(filterObject: { [s: string]: any }): Promise<boolean>;
 
-  abstract async limit(limitNumaber: number): Promise<Map<string, any>[]>;
+  abstract async limit(limitNumaber: number): Promise<{[s: string]: any}[]>;
 
   protected async loadTableInfo() {
     const dynamoDB = new AWS.DynamoDB();

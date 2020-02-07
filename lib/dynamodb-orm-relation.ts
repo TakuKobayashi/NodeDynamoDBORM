@@ -35,9 +35,9 @@ export class DynamoDBORMRelation extends DynamoDBORMBase {
     return this;
   }
 
-  async load(): Promise<Map<string, any>[]> {
+  async load(): Promise<{[s: string]: any}[]> {
     const queryResult = await this.executeQuery();
-    return queryResult.Items as Map<string, any>[];
+    return queryResult.Items as {[s: string]: any}[];
   }
 
   /**
@@ -65,10 +65,10 @@ export class DynamoDBORMRelation extends DynamoDBORMBase {
    * get all tables data.
    * @return {array[object]} all of table data.
    */
-  async limit(limitNumaber: number): Promise<Map<string, any>[]> {
+  async limit(limitNumaber: number): Promise<{[s: string]: any}[]> {
     this.queryParams.Limit = limitNumaber;
     const queryResult = await this.executeQuery();
-    return queryResult.Items as Map<string, any>[];
+    return queryResult.Items as {[s: string]: any}[];
   }
 
   private async executeQuery(): Promise<QueryOutput | ScanOutput> {
