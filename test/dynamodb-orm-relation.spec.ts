@@ -114,7 +114,7 @@ describe('DynamoDBORM', () => {
         { Artist: 'sampleArtist2', SongTitle: 'sampleSongTitle2' },
         { Artist: 'sampleArtist2', SongTitle: 'sampleSongTitle3' },
       ]);
-      expect(await dynamodbOrmRelation.where({ Artist: 'sampleArtist1'}).count()).toBe(2);
+      expect(await dynamodbOrmRelation.where({ Artist: 'sampleArtist1' }).count()).toBe(2);
     });
 
     it('exists', async () => {
