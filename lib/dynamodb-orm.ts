@@ -71,7 +71,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
       ReturnValues: 'ALL_OLD',
     };
     const createResult = await this.dynamoClient.put(params).promise();
-    return { ...createResult.Attributes, ...putObject } as { [s: string]: any };
+    return { ...createResult.Attributes, ...putObject };
   }
 
   /**
