@@ -56,7 +56,7 @@ export abstract class DynamoDBORMBase {
 
   abstract async exists(filterObject: { [s: string]: any }): Promise<boolean>;
 
-  abstract async limit(limitNumaber: number): Promise<Map<string, any>[]>;
+  abstract async limit(limitNumaber: number): Promise<{ [s: string]: any }[]>;
 
   protected async loadTableInfo() {
     const dynamoDB = new AWS.DynamoDB();
@@ -124,15 +124,25 @@ export abstract class DynamoDBORMBase {
    * update AWS Config;
    */
   static updateConfig(config: ConfigurationOptions & ConfigurationServicePlaceholders & APIVersions & { [key: string]: any }) {
-    DynamoDBORMBase.awsConfig = config;
-    AWS.config.update(config);
+    const updateConfig = config;
+    if(config.endpoint && config.endpoint instanceof String){
+      updateConfig.endpoint = new AWS.Endpoint(config.endpoint);
+    }
+    DynamoDBORMBase.awsConfig = updateConfig;
+    AWS.config.update(updateConfig);
   }
 
   /**
-   * clear cathing Memory;
+   * clear table caching Memory;
    */
-  static clear(): void {
-    DynamoDBORMBase.awsConfig = {};
+  static clearTableCache(): void {
     DynamoDBORMBase.tableInfos = {};
+  }
+
+  /**
+   * clear aws config in Memory;
+   */
+  static clearConfig(): void {
+    DynamoDBORMBase.awsConfig = {};
   }
 }
