@@ -1,7 +1,14 @@
 import { DynamoDBORMRelation } from './dynamodb-orm-relation';
 import { DynamoDBORMBase } from './dynamodb-orm-base';
+import { TransactionWriterStates } from './dynamodb-transaction-states';
+import { TransactWriteItem } from 'aws-sdk/clients/dynamodb';
 
 export class DynamoDBORM extends DynamoDBORMBase {
+
+  private transactionStates: TransactionWriterStates = {
+    isInnerTransaction: false,
+    writerItems: [],
+  };
   /**
    * get data from primaryKeys.
    * @param {string, object} tablename and filter primaryKeys
@@ -185,9 +192,16 @@ export class DynamoDBORM extends DynamoDBORMBase {
     return result;
   }
 
-  transaction(callback: (transactionOrm: DynamoDBORMTransaction) => void){
-    const transactionOrm = new DynamoDBORMTransaction(this.tableName);
+  transaction(callback: (transactionOrm: DynamoDBORM) => void){
+    this.transactionStates.isInnerTransaction = true;
+    const transactionOrm = new DynamoDBORM(this.tableName);
     callback(transactionOrm);
-    transactionOrm.execute();
+    transactionOrm.executeTransaction();
+    this.transactionStates.isInnerTransaction = false;
+    this.transactionStates.writerItems = [];
+  }
+
+  private executeTransaction(): void{
+
   }
 }
