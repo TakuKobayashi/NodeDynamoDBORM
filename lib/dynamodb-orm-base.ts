@@ -124,15 +124,25 @@ export abstract class DynamoDBORMBase {
    * update AWS Config;
    */
   static updateConfig(config: ConfigurationOptions & ConfigurationServicePlaceholders & APIVersions & { [key: string]: any }) {
-    DynamoDBORMBase.awsConfig = config;
-    AWS.config.update(config);
+    const updateConfig = config;
+    if(config.endpoint && config.endpoint instanceof String){
+      updateConfig.endpoint = new AWS.Endpoint(config.endpoint);
+    }
+    DynamoDBORMBase.awsConfig = updateConfig;
+    AWS.config.update(updateConfig);
   }
 
   /**
-   * clear cathing Memory;
+   * clear table caching Memory;
    */
-  static clear(): void {
-    DynamoDBORMBase.awsConfig = {};
+  static clearTableCache(): void {
     DynamoDBORMBase.tableInfos = {};
+  }
+
+  /**
+   * clear aws config in Memory;
+   */
+  static clearConfig(): void {
+    DynamoDBORMBase.awsConfig = {};
   }
 }

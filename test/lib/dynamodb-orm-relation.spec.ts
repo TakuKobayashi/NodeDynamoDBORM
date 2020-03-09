@@ -1,4 +1,4 @@
-import { DynamoDBORM } from '../../lib/dynamodb-orm';
+import { DynamoDBORM } from '../../lib';
 import { DynamoDBORMRelation } from '../../lib/dynamodb-orm-relation';
 
 const AWS = require('aws-sdk');
@@ -8,11 +8,12 @@ const endpoint = 'http://localhost:8000';
 const region = 'ap-northeast-1';
 
 beforeEach(() => {
-  DynamoDBORM.updateConfig({ region: region, endpoint: new AWS.Endpoint(endpoint) });
+  DynamoDBORM.updateConfig({ region: region, endpoint: endpoint });
 });
 
 afterEach(() => {
-  DynamoDBORM.clear();
+  DynamoDBORM.clearTableCache();
+  DynamoDBORM.clearConfig();
 });
 
 describe('DynamoDBORM', () => {
