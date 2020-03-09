@@ -1,5 +1,5 @@
-import { DynamoDBORM } from '../lib/dynamodb-orm';
-import { DynamoDBORMRelation } from '../lib/dynamodb-orm-relation';
+import { DynamoDBORM } from '../../lib/dynamodb-orm';
+import { DynamoDBORMRelation } from '../../lib/dynamodb-orm-relation';
 
 const AWS = require('aws-sdk');
 
