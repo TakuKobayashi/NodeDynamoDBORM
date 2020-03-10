@@ -10,10 +10,12 @@ export class DynamoDBORM extends DynamoDBORMBase {
 
   constructor(tableName: string) {
     super(tableName);
-    this.clearTransactionState();
+    if(!DynamoDBORM.transactionWriterStates.isInnerTransaction){
+      DynamoDBORM.clearTransactionState();
+    }
   }
 
-  private clearTransactionState(): void {
+  private static clearTransactionState(): void {
     DynamoDBORM.transactionWriterStates = {
       isInnerTransaction: false,
       writerItems: [],
@@ -105,8 +107,8 @@ export class DynamoDBORM extends DynamoDBORMBase {
 
   /**
    * delete row data.
-   * @param {sobject} filterObject is primaryKeyName and value Object.
-   * @return boolean, delete success or not
+   * @param {object} filterObject is primaryKeyName and value Object.
+   * @return {boolean} delete success or not
    */
   async delete(filterObject: { [s: string]: any }): Promise<boolean> {
     const params = {
@@ -235,7 +237,33 @@ export class DynamoDBORM extends DynamoDBORMBase {
       .transactWrite({ TransactItems: DynamoDBORM.transactionWriterStates.writerItems })
       .promise()
       .finally(() => {
-        this.clearTransactionState();
+        DynamoDBORM.clearTransactionState();
       });
+  }
+
+  /**
+   * dynamodb write transaction like begin commit or rollback
+   * @param {function} inTransaction　is written in this function which will be write features.
+   */
+  static async transaction(inTransaction: () => Promise<void>): Promise<any> {
+    DynamoDBORM.transactionWriterStates.isInnerTransaction = true;
+    await inTransaction();
+    let result: any;
+    if(DynamoDBORM.transactionWriterStates.writerItems.length > 0){
+      const firstItem = DynamoDBORM.transactionWriterStates.writerItems[0];
+      let dynamodbOrm: DynamoDBORM;
+      if(firstItem.Put){
+        dynamodbOrm = new DynamoDBORM(firstItem.Put.TableName);
+      }else if(firstItem.Update){
+        dynamodbOrm = new DynamoDBORM(firstItem.Update.TableName);
+      }else if(firstItem.Delete){
+        dynamodbOrm = new DynamoDBORM(firstItem.Delete.TableName);
+      }
+      result = await dynamodbOrm.dynamoClient
+        .transactWrite({ TransactItems: DynamoDBORM.transactionWriterStates.writerItems })
+        .promise()
+    }
+    DynamoDBORM.clearTransactionState();
+    return result;
   }
 }
