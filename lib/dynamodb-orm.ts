@@ -4,7 +4,7 @@ import { TransactionWriterStates } from './dynamodb-transaction-states';
 
 export class DynamoDBORM extends DynamoDBORMBase {
 
-  private transactionStates: TransactionWriterStates = {
+  private transactionWriterStates: TransactionWriterStates = {
     isInnerTransaction: false,
     writerItems: [],
   };
@@ -15,7 +15,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
   }
 
   private clearTransactionState(): void {
-    this.transactionStates = {
+    this.transactionWriterStates = {
       isInnerTransaction: false,
       writerItems: [],
     };
@@ -74,8 +74,13 @@ export class DynamoDBORM extends DynamoDBORMBase {
       ExpressionAttributeValues: updateExpressionAttributeValues,
       ReturnValues: 'ALL_NEW',
     };
-    const updateResult = await this.dynamoClient.update(params).promise();
-    return updateResult.Attributes as { [s: string]: any };
+    if(this.transactionWriterStates.isInnerTransaction){
+      this.transactionWriterStates.writerItems.push({Update: params});
+      return updateObject;
+    } else {
+      const updateResult = await this.dynamoClient.update(params).promise();
+      return updateResult.Attributes as { [s: string]: any };
+    }
   }
 
   /**
@@ -89,8 +94,13 @@ export class DynamoDBORM extends DynamoDBORMBase {
       Item: putObject,
       ReturnValues: 'ALL_OLD',
     };
-    const createResult = await this.dynamoClient.put(params).promise();
-    return { ...createResult.Attributes, ...putObject };
+    if(this.transactionWriterStates.isInnerTransaction) {
+      this.transactionWriterStates.writerItems.push({ Put: params });
+      return putObject;
+    } else {
+      const createResult = await this.dynamoClient.put(params).promise();
+      return { ...createResult.Attributes, ...putObject };
+    }
   }
 
   /**
@@ -98,14 +108,20 @@ export class DynamoDBORM extends DynamoDBORMBase {
    * @param {string, object} tablename and delete data.
    * @return {object} before delete object
    */
-  async delete(filterObject: { [s: string]: any }): Promise<{ [s: string]: any }> {
+  async delete(filterObject: { [s: string]: any }): Promise<boolean> {
     const params = {
       TableName: this.tableName,
       Key: filterObject,
       ReturnValues: 'ALL_OLD',
     };
-    const deleteResult = await this.dynamoClient.delete(params).promise();
-    return deleteResult.Attributes as { [s: string]: any };
+    if(this.transactionWriterStates.isInnerTransaction) {
+      this.transactionWriterStates.writerItems.push({ Delete: params });
+      return true;
+    } else {
+      let isSuccess = true;
+      await this.dynamoClient.delete(params).promise().catch(error => isSuccess = false);
+      return isSuccess;
+    }
   }
 
   /**
@@ -204,15 +220,24 @@ export class DynamoDBORM extends DynamoDBORMBase {
     return result;
   }
 
-  transaction(callback: (transactionOrm: DynamoDBORM) => void){
-    this.transactionStates.isInnerTransaction = true;
-    const transactionOrm = new DynamoDBORM(this.tableName);
-    callback(transactionOrm);
-    transactionOrm.executeTransaction();
+  /**
+   * transaction like begin commit
+   * @param {string, object} tablename and putObjects
+   */
+  transaction(inTransaction: () => void, inTransactionErrorCallback: (error: Error) => void = undefined){
+    this.transactionWriterStates.isInnerTransaction = true;
+    try {
+      inTransaction();
+      this.executeTransaction();
+    } catch (error){
+      if(inTransactionErrorCallback){
+        inTransactionErrorCallback(error);
+      }
+    }
     this.clearTransactionState();
   }
 
-  private executeTransaction(): void{
+  private executeTransaction(): void {
 
   }
 }
