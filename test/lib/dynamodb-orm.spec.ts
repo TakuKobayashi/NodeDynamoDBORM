@@ -95,8 +95,8 @@ describe('DynamoDBORM', () => {
 
     it('delete', async () => {
       const musicObj = await dynamodbOrm.create({ Artist: 'sampleArtist', SongTitle: 'sampleSongTitle' });
-      const deletedObj = await dynamodbOrm.delete(musicObj);
-      expect(deletedObj).toEqual(musicObj);
+      const isDeleteSuccess = await dynamodbOrm.delete(musicObj);
+      expect(isDeleteSuccess).toBeTruthy();
       expect(await dynamodbOrm.findBy(musicObj)).toBeUndefined();
     });
 
@@ -287,8 +287,8 @@ describe('DynamoDBORM', () => {
 
     it('delete', async () => {
       const musicObj = await dynamodbOrm.create({ ArtistId: 1, SongTitle: new Buffer('sampleSongTitle') });
-      const deletedObj = await dynamodbOrm.delete(musicObj);
-      expect(deletedObj).toEqual(musicObj);
+      const isDeleteSuccess = await dynamodbOrm.delete(musicObj);
+      expect(isDeleteSuccess).toBeTruthy();
       expect(await dynamodbOrm.findBy(musicObj)).toBeUndefined();
     });
 
