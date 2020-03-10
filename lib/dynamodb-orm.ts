@@ -1,7 +1,6 @@
 import { DynamoDBORMRelation } from './dynamodb-orm-relation';
 import { DynamoDBORMBase } from './dynamodb-orm-base';
 import { TransactionWriterStates } from './dynamodb-transaction-states';
-import { TransactWriteItem } from 'aws-sdk/clients/dynamodb';
 
 export class DynamoDBORM extends DynamoDBORMBase {
 
