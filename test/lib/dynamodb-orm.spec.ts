@@ -520,5 +520,36 @@ describe('DynamoDBORM', () => {
         ]);
       });
     })
+
+    describe("anothorTables", () => {
+      it('create, delete, update', async () => {
+        const musicDynamodbOrm = new DynamoDBORM(tableName);
+        await musicDynamodbOrm.import([
+          { Artist: 'sampleArtist1', SongTitle: 'sampleSongTitle1', createrName: "test1" },
+          { Artist: 'sampleArtist2', SongTitle: 'sampleSongTitle2', createrName: "test2" },
+        ]);
+        const shopDynamodbOrm = new DynamoDBORM(secondTableName);
+        await shopDynamodbOrm.import([
+          { ShopId: '1', Name: 'sampleShope1', placeName: "shopTest1" },
+          { ShopId: '2', Name: 'sampleShope2', placeName: "shopTest2" },
+          { ShopId: '3', Name: 'sampleShope3', placeName: "shopTest3" },
+        ]);
+        await musicDynamodbOrm.transaction(async () => {
+          await musicDynamodbOrm.create({ Artist: 'sampleArtist3', SongTitle: 'sampleSongTitle3', createrName: "test3" });
+          await shopDynamodbOrm.update({ ShopId: '1', Name: 'sampleShope1' }, { placeName: "hogehoge" });
+          await shopDynamodbOrm.delete({ ShopId: '2', Name: 'sampleShope2' });
+        });
+
+        expect(await musicDynamodbOrm.all()).toEqual([
+          { Artist: 'sampleArtist3', SongTitle: 'sampleSongTitle3', createrName: "test3" },
+          { Artist: 'sampleArtist1', SongTitle: 'sampleSongTitle1', createrName: "test1" },
+          { Artist: 'sampleArtist2', SongTitle: 'sampleSongTitle2', createrName: "test2" },
+        ]);
+        expect(await shopDynamodbOrm.all()).toEqual([
+          { ShopId: '1', Name: 'sampleShope1', placeName: "hogehoge" },
+          { ShopId: '3', Name: 'sampleShope3', placeName: "shopTest3" },
+        ]);
+      });
+    })
   });
 });
