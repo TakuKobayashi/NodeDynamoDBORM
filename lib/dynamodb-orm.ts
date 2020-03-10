@@ -10,7 +10,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
 
   constructor(tableName: string) {
     super(tableName);
-    if(!DynamoDBORM.transactionWriterStates.isInnerTransaction){
+    if (!DynamoDBORM.transactionWriterStates.isInnerTransaction) {
       DynamoDBORM.clearTransactionState();
     }
   }
@@ -249,19 +249,17 @@ export class DynamoDBORM extends DynamoDBORMBase {
     DynamoDBORM.transactionWriterStates.isInnerTransaction = true;
     await inTransaction();
     let result: any;
-    if(DynamoDBORM.transactionWriterStates.writerItems.length > 0){
+    if (DynamoDBORM.transactionWriterStates.writerItems.length > 0) {
       const firstItem = DynamoDBORM.transactionWriterStates.writerItems[0];
       let dynamodbOrm: DynamoDBORM;
-      if(firstItem.Put){
+      if (firstItem.Put) {
         dynamodbOrm = new DynamoDBORM(firstItem.Put.TableName);
-      }else if(firstItem.Update){
+      } else if (firstItem.Update) {
         dynamodbOrm = new DynamoDBORM(firstItem.Update.TableName);
-      }else if(firstItem.Delete){
+      } else if (firstItem.Delete) {
         dynamodbOrm = new DynamoDBORM(firstItem.Delete.TableName);
       }
-      result = await dynamodbOrm.dynamoClient
-        .transactWrite({ TransactItems: DynamoDBORM.transactionWriterStates.writerItems })
-        .promise()
+      result = await dynamodbOrm.dynamoClient.transactWrite({ TransactItems: DynamoDBORM.transactionWriterStates.writerItems }).promise();
     }
     DynamoDBORM.clearTransactionState();
     return result;
