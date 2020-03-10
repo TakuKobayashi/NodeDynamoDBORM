@@ -23,8 +23,8 @@ export class DynamoDBORM extends DynamoDBORMBase {
 
   /**
    * get data from primaryKeys.
-   * @param {string, object} tablename and filter primaryKeys
-   * @return {object} dynamodb table row object
+   * @param {object} filterObject is primaryKeyName and value Object.
+   * @return {object} dynamodb table a row object
    */
   async findBy(filterObject: { [s: string]: any }): Promise<{ [s: string]: any }> {
     const params = {
@@ -37,7 +37,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
 
   /**
    * search query data from primaryKey.
-   * @param {string, object} tablename and filter primaryKey
+   * @param {object} filterObject is primaryKeyName and value Object.
    * @return {array[object]} dynamodb table row objects
    */
   async findByAll(filterObject: { [s: string]: any }): Promise<{ [s: string]: any }[]> {
@@ -52,7 +52,8 @@ export class DynamoDBORM extends DynamoDBORMBase {
 
   /**
    * update row data.
-   * @param {string, object, object} tablename and filter primaryKeys and update obejct.
+   * @param {object} filterObject is primaryKeyName and value Object.
+   * @param {object} updateObject is update obejct.
    * @return {object} updated object
    */
   async update(filterObject: { [s: string]: any }, updateObject: { [s: string]: any }): Promise<{ [s: string]: any }> {
@@ -85,7 +86,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
 
   /**
    * create new row  data.
-   * @param {string, object} tablename and new obejct.
+   * @param {object} putObject is a object inserting to dynamodb.
    * @return {object} created object
    */
   async create(putObject: { [s: string]: any }): Promise<{ [s: string]: any }> {
@@ -105,8 +106,8 @@ export class DynamoDBORM extends DynamoDBORMBase {
 
   /**
    * delete row data.
-   * @param {string, object} tablename and delete data.
-   * @return {object} before delete object
+   * @param {sobject} filterObject is primaryKeyName and value Object.
+   * @return boolean, delete success or not
    */
   async delete(filterObject: { [s: string]: any }): Promise<boolean> {
     const params = {
@@ -126,7 +127,6 @@ export class DynamoDBORM extends DynamoDBORMBase {
 
   /**
    * get all tables data.
-   * @param {string} tablename.
    * @return {array[object]} all of table data.
    */
   async all(): Promise<{ [s: string]: any }> {
@@ -135,24 +135,27 @@ export class DynamoDBORM extends DynamoDBORMBase {
   }
 
   /**
-   * get all tables data.
-   * @return {array[object]} all of table data.
+   * get custom filtered row data.
+   * @param {object} filterObject is filtering key name and value Object.
+   * @return {DynamoDBORMRelation} method chainable class.
    */
   where(filterObject: { [s: string]: any }): DynamoDBORMRelation {
     return new DynamoDBORMRelation(this.tableName).where(filterObject);
   }
 
   /**
-   * get all tables data.
-   * @return {array[object]} all of table data.
+   * will return reflected offset data
+   * @param {object} offsetStart is primary key and value set, starting offset pair.
+   * @return {DynamoDBORMRelation} method chainable class.
    */
   offset(offsetStart: { [s: string]: any }): DynamoDBORMRelation {
     return new DynamoDBORMRelation(this.tableName).offset(offsetStart);
   }
 
   /**
-   * get all tables data.
-   * @return {array[object]} all of table data.
+   * get limited tables data.
+   * @param {number} limitNumaber will get max data count.
+   * @return {array[object]} row table data
    */
   async limit(limitNumaber: number): Promise<{ [s: string]: any }[]> {
     const scanResult = await this.dynamoClient.scan({ TableName: this.tableName, Limit: limitNumaber }).promise();
@@ -160,8 +163,8 @@ export class DynamoDBORM extends DynamoDBORMBase {
   }
 
   /**
-   * get all tables data.
-   * @return {number} all of table data.
+   * get table data count.
+   * @return {number} all of table data count.
    */
   async count(): Promise<number> {
     const scanResult = await this.dynamoClient.scan({ TableName: this.tableName, Select: 'COUNT' }).promise();
@@ -169,8 +172,9 @@ export class DynamoDBORM extends DynamoDBORMBase {
   }
 
   /**
-   * get all tables data.
-   * @return {boolean} all of table data.
+   * check data exists.
+   * @param {object} filterObject is filtering key name and value Object.
+   * @return {boolean} checked result, filtered data exists.
    */
   async exists(filterObject: { [s: string]: any } = {}): Promise<boolean> {
     return this.where(filterObject).exists();
@@ -178,7 +182,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
 
   /**
    * import data to table
-   * @param {string, object} tablename and putObjects
+   * @param {array[object]} putObjects are objects will insert to dynamodb.
    * @return {array} UnprocessedItems
    */
   async import(putObjects: { [s: string]: any }[]): Promise<any> {
@@ -190,17 +194,16 @@ export class DynamoDBORM extends DynamoDBORMBase {
         },
       };
     });
-    const result = await this.dynamoClient
+    return await this.dynamoClient
       .batchWrite({
         RequestItems: importItems,
       })
       .promise();
-    return result;
   }
 
   /**
-   * import data to table
-   * @param {string, object} tablename and putObjects
+   * delete data from table
+   * @param {array[object]} filterObjects are objects will delete rows primary key and value sets.
    * @return {array} UnprocessedItems
    */
   async deleteAll(filterObjects: { [s: string]: any }[]): Promise<any> {
@@ -212,12 +215,11 @@ export class DynamoDBORM extends DynamoDBORMBase {
         },
       };
     });
-    const result = await this.dynamoClient
+    return await this.dynamoClient
       .batchWrite({
         RequestItems: importItems,
       })
       .promise();
-    return result;
   }
 
   /**
