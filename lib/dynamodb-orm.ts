@@ -9,6 +9,19 @@ export class DynamoDBORM extends DynamoDBORMBase {
     isInnerTransaction: false,
     writerItems: [],
   };
+
+  constructor(tableName: string) {
+    super(tableName);
+    this.clearTransactionState();
+  }
+
+  private clearTransactionState(): void {
+    this.transactionStates = {
+      isInnerTransaction: false,
+      writerItems: [],
+    };
+  }
+
   /**
    * get data from primaryKeys.
    * @param {string, object} tablename and filter primaryKeys
@@ -197,8 +210,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
     const transactionOrm = new DynamoDBORM(this.tableName);
     callback(transactionOrm);
     transactionOrm.executeTransaction();
-    this.transactionStates.isInnerTransaction = false;
-    this.transactionStates.writerItems = [];
+    this.clearTransactionState();
   }
 
   private executeTransaction(): void{
