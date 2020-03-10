@@ -3,7 +3,6 @@ import { DynamoDBORMBase } from './dynamodb-orm-base';
 import { TransactionWriterStates } from './dynamodb-transaction-states';
 
 export class DynamoDBORM extends DynamoDBORMBase {
-
   private transactionWriterStates: TransactionWriterStates = {
     isInnerTransaction: false,
     writerItems: [],
@@ -75,8 +74,8 @@ export class DynamoDBORM extends DynamoDBORMBase {
       ExpressionAttributeValues: updateExpressionAttributeValues,
       ReturnValues: 'ALL_NEW',
     };
-    if(this.transactionWriterStates.isInnerTransaction){
-      this.transactionWriterStates.writerItems.push({Update: params});
+    if (this.transactionWriterStates.isInnerTransaction) {
+      this.transactionWriterStates.writerItems.push({ Update: params });
       return updateObject;
     } else {
       const updateResult = await this.dynamoClient.update(params).promise();
@@ -95,7 +94,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
       Item: putObject,
       ReturnValues: 'ALL_OLD',
     };
-    if(this.transactionWriterStates.isInnerTransaction) {
+    if (this.transactionWriterStates.isInnerTransaction) {
       this.transactionWriterStates.writerItems.push({ Put: params });
       return putObject;
     } else {
@@ -115,12 +114,15 @@ export class DynamoDBORM extends DynamoDBORMBase {
       Key: filterObject,
       ReturnValues: 'ALL_OLD',
     };
-    if(this.transactionWriterStates.isInnerTransaction) {
+    if (this.transactionWriterStates.isInnerTransaction) {
       this.transactionWriterStates.writerItems.push({ Delete: params });
       return true;
     } else {
       let isSuccess = true;
-      await this.dynamoClient.delete(params).promise().catch(error => isSuccess = false);
+      await this.dynamoClient
+        .delete(params)
+        .promise()
+        .catch((error) => (isSuccess = false));
       return isSuccess;
     }
   }
@@ -223,23 +225,17 @@ export class DynamoDBORM extends DynamoDBORMBase {
   }
 
   /**
-   * transaction like begin commit
-   * @param {string, object} tablename and putObjects
+   * dynamodb write transaction like begin commit or rollback
+   * @param {function} inTransaction　is written in this function which will be write features.
    */
-  transaction(inTransaction: () => void, inTransactionErrorCallback: (error: Error) => void = undefined){
+  async transaction(inTransaction: () => Promise<void>): Promise<any> {
     this.transactionWriterStates.isInnerTransaction = true;
-    try {
-      inTransaction();
-      this.executeTransaction();
-    } catch (error){
-      if(inTransactionErrorCallback){
-        inTransactionErrorCallback(error);
-      }
-    }
-    this.clearTransactionState();
-  }
-
-  private executeTransaction(): void {
-
+    await inTransaction();
+    return await this.dynamoClient
+      .transactWrite({ TransactItems: this.transactionWriterStates.writerItems })
+      .promise()
+      .finally(() => {
+        this.clearTransactionState();
+      });
   }
 }

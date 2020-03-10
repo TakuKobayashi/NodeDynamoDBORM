@@ -1,4 +1,4 @@
-import { TransactWriteItem } from "aws-sdk/clients/dynamodb";
+import { TransactWriteItem } from 'aws-sdk/clients/dynamodb';
 
 export interface TransactionStates {
   isInnerTransaction: boolean;
