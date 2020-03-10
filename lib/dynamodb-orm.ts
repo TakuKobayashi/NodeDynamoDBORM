@@ -3,7 +3,7 @@ import { DynamoDBORMBase } from './dynamodb-orm-base';
 import { TransactionWriterStates } from './dynamodb-transaction-states';
 
 export class DynamoDBORM extends DynamoDBORMBase {
-  private transactionWriterStates: TransactionWriterStates = {
+  private static transactionWriterStates: TransactionWriterStates = {
     isInnerTransaction: false,
     writerItems: [],
   };
@@ -14,7 +14,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
   }
 
   private clearTransactionState(): void {
-    this.transactionWriterStates = {
+    DynamoDBORM.transactionWriterStates = {
       isInnerTransaction: false,
       writerItems: [],
     };
@@ -74,8 +74,8 @@ export class DynamoDBORM extends DynamoDBORMBase {
       ExpressionAttributeValues: updateExpressionAttributeValues,
       ReturnValues: 'ALL_NEW',
     };
-    if (this.transactionWriterStates.isInnerTransaction) {
-      this.transactionWriterStates.writerItems.push({ Update: params });
+    if (DynamoDBORM.transactionWriterStates.isInnerTransaction) {
+      DynamoDBORM.transactionWriterStates.writerItems.push({ Update: params });
       return updateObject;
     } else {
       const updateResult = await this.dynamoClient.update(params).promise();
@@ -94,8 +94,8 @@ export class DynamoDBORM extends DynamoDBORMBase {
       Item: putObject,
       ReturnValues: 'ALL_OLD',
     };
-    if (this.transactionWriterStates.isInnerTransaction) {
-      this.transactionWriterStates.writerItems.push({ Put: params });
+    if (DynamoDBORM.transactionWriterStates.isInnerTransaction) {
+      DynamoDBORM.transactionWriterStates.writerItems.push({ Put: params });
       return putObject;
     } else {
       const createResult = await this.dynamoClient.put(params).promise();
@@ -114,8 +114,8 @@ export class DynamoDBORM extends DynamoDBORMBase {
       Key: filterObject,
       ReturnValues: 'ALL_OLD',
     };
-    if (this.transactionWriterStates.isInnerTransaction) {
-      this.transactionWriterStates.writerItems.push({ Delete: params });
+    if (DynamoDBORM.transactionWriterStates.isInnerTransaction) {
+      DynamoDBORM.transactionWriterStates.writerItems.push({ Delete: params });
       return true;
     } else {
       let isSuccess = true;
@@ -229,10 +229,10 @@ export class DynamoDBORM extends DynamoDBORMBase {
    * @param {function} inTransaction　is written in this function which will be write features.
    */
   async transaction(inTransaction: () => Promise<void>): Promise<any> {
-    this.transactionWriterStates.isInnerTransaction = true;
+    DynamoDBORM.transactionWriterStates.isInnerTransaction = true;
     await inTransaction();
     return await this.dynamoClient
-      .transactWrite({ TransactItems: this.transactionWriterStates.writerItems })
+      .transactWrite({ TransactItems: DynamoDBORM.transactionWriterStates.writerItems })
       .promise()
       .finally(() => {
         this.clearTransactionState();
