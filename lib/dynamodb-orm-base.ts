@@ -125,7 +125,7 @@ export abstract class DynamoDBORMBase {
    */
   static updateConfig(config: ConfigurationOptions & ConfigurationServicePlaceholders & APIVersions & { [key: string]: any }) {
     const updateConfig = config;
-    if(config.endpoint && config.endpoint instanceof String){
+    if (config.endpoint && config.endpoint instanceof String) {
       updateConfig.endpoint = new AWS.Endpoint(config.endpoint);
     }
     DynamoDBORMBase.awsConfig = updateConfig;
