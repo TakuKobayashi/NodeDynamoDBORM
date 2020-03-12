@@ -52,7 +52,7 @@ export abstract class DynamoDBORMBase {
 
   abstract offset(offsetStart: { [s: string]: any }): DynamoDBORMRelation;
 
-  abstract async count(): Promise<Number>;
+  abstract async count(): Promise<number>;
 
   abstract async exists(filterObject: { [s: string]: any }): Promise<boolean>;
 
