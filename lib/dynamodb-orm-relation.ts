@@ -52,7 +52,7 @@ export class DynamoDBORMRelation extends DynamoDBORMBase {
    * get all tables data.
    * @return {array[object]} all of table data.
    */
-  async count(): Promise<Number> {
+  async count(): Promise<number> {
     this.queryParams.Select = 'COUNT';
     const queryResult = await this.executeQuery();
     return queryResult.Count;
