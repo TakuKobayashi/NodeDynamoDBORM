@@ -58,9 +58,33 @@ export abstract class DynamoDBORMBase {
 
   abstract async limit(limitNumaber: number): Promise<{ [s: string]: any }[]>;
 
-  abstract async findEach(callback: (record: { [s: string]: any }) => void, start:{ [s: string]: any }, batchSize: number): Promise<void>;
+  async findEach(callback: (record: { [s: string]: any }) => void, start: { [s: string]: any } = {}, batchSize: number = 1000): Promise<void>{
+    console.warn(["startFindEach", batchSize, this.tableName].join(":"));
+    this.findInBatches((records) => {
+      for(const recordObject of records){
+        callback(recordObject);
+      }
+    }, start, batchSize);
+  }
 
-  abstract async findInBatches(callback: (records: { [s: string]: any }[]) => void, start:{ [s: string]: any }, batchSize: number): Promise<void>;
+  async findInBatches(callback: (records: { [s: string]: any }[]) => void, start:{ [s: string]: any } = {}, batchSize: number = 1000): Promise<void>{
+    let offsetObject: { [s: string]: any } = {...start};
+    let counter = 0;
+    do{
+      let recordObjects: { [s: string]: any }[] = [];
+      if(offsetObject && Object.keys(offsetObject).length > 0){
+        recordObjects = await this.offset(offsetObject).limit(batchSize)
+      }else{
+        recordObjects = await this.limit(batchSize)
+      }
+      console.warn(["recordCount", recordObjects.length].join(":"));
+      console.warn(JSON.stringify(recordObjects));
+      offsetObject = recordObjects[recordObjects.length - 1];
+      counter = counter + recordObjects.length;
+      callback(recordObjects);
+    } while(offsetObject && Object.keys(offsetObject).length > 0);
+    console.log(counter);
+  }
 
   protected async loadTableInfo() {
     const dynamoDB = new AWS.DynamoDB();

@@ -199,6 +199,45 @@ describe('DynamoDBORM', () => {
       ]);
       expect(await dynamodbOrm.limit(1)).toEqual([{ Artist: 'sampleArtist', SongTitle: 'sampleSongTitle1' }]);
     });
+
+    it('findEach', async () => {
+      await dynamodbOrm.import([
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle1' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle2' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle3' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle4' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle5' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle6' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle7' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle8' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle9' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle10' },
+      ]);
+      await dynamodbOrm.findEach(async (record) => {
+        expect(await dynamodbOrm.exists(record)).toBeTruthy();
+      }, { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle3' }, 2);
+    });
+
+    it('findInBatches', async () => {
+      await dynamodbOrm.import([
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle1' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle2' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle3' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle4' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle5' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle6' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle7' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle8' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle9' },
+        { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle10' },
+      ]);
+      await dynamodbOrm.findInBatches(async (records) => {
+        for(const recordObject of records){
+          expect(await dynamodbOrm.exists(recordObject)).toBeTruthy();
+        }
+      }, { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle3' }, 2);
+    });
+
   });
 
   describe('HashKey is number', () => {

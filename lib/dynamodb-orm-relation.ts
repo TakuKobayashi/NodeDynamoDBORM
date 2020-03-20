@@ -26,14 +26,6 @@ export class DynamoDBORMRelation extends DynamoDBORMBase {
     return this;
   }
 
-  async findEach(callback: (record: { [s: string]: any }) => void, start:{ [s: string]: any } = {}, batchSize: number = 1000): Promise<void>{
-
-  }
-
-  async findInBatches(callback: (records: { [s: string]: any }[]) => void, start:{ [s: string]: any } = {}, batchSize: number = 1000): Promise<void>{
-
-  }
-
   /**
    * get all tables data.
    * @return {array[object]} all of table data.
