@@ -6,7 +6,7 @@
     "url": "https://github.com/TakuKobayashi/NodeDynamoDBORM/issues"
   },
   "dependencies": {
-    "aws-sdk": "^2.1178.0"
+    "@aws-sdk/client-dynamodb": "^3.131.0"
   },
   "devDependencies": {
     "@types/aws-sdk": "^2.7.0",
