@@ -42,7 +42,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "format": "prettier --config .prettierrc --write '**/*.{ts,js}'",
+    "format": "prettier --config .prettierrc --write \"{lib,test}/**/*.{ts,js}\"",
     "docs": "typedoc --out docs/ && touch docs/.nojekyll",
     "jest": "jest -c jest.config.js"
   },
