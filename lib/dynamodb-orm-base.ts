@@ -1,10 +1,10 @@
 import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_placeholders';
-import { APIVersions, ConfigurationOptions } from 'aws-sdk/lib/config';
+import { APIVersions } from 'aws-sdk/lib/config';
+import { ConfigurationOptions } from 'aws-sdk/lib/config-base';
 import { DocumentClient, TableDescription } from 'aws-sdk/clients/dynamodb';
+import * as AWS from 'aws-sdk';
 import { DynamoDBORMRelation } from './dynamodb-orm-relation';
 import QueryInput = DocumentClient.QueryInput;
-
-const AWS = require('aws-sdk');
 
 export abstract class DynamoDBORMBase {
   public dynamoClient: DocumentClient;
@@ -126,7 +126,7 @@ export abstract class DynamoDBORMBase {
   static updateConfig(config: ConfigurationOptions & ConfigurationServicePlaceholders & APIVersions & { [key: string]: any }) {
     const updateConfig = config;
     if (config.endpoint && config.endpoint instanceof String) {
-      updateConfig.endpoint = new AWS.Endpoint(config.endpoint);
+      updateConfig.endpoint = new AWS.Endpoint(config.endpoint.toString());
     }
     DynamoDBORMBase.awsConfig = updateConfig;
     AWS.config.update(updateConfig);
