@@ -52,11 +52,11 @@ export abstract class DynamoDBORMBase {
 
   abstract offset(offsetStart: { [s: string]: any }): DynamoDBORMRelation;
 
-  abstract async count(): Promise<Number>;
+  abstract count(): Promise<Number>;
 
-  abstract async exists(filterObject: { [s: string]: any }): Promise<boolean>;
+  abstract exists(filterObject: { [s: string]: any }): Promise<boolean>;
 
-  abstract async limit(limitNumaber: number): Promise<{ [s: string]: any }[]>;
+  abstract limit(limitNumaber: number): Promise<{ [s: string]: any }[]>;
 
   protected async loadTableInfo() {
     const dynamoDB = new AWS.DynamoDB();
