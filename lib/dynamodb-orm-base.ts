@@ -1,51 +1,13 @@
-import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_placeholders';
-import { APIVersions } from 'aws-sdk/lib/config';
-import { ConfigurationOptions } from 'aws-sdk/lib/config-base';
-import { DocumentClient, TableDescription } from 'aws-sdk/clients/dynamodb';
-import * as AWS from 'aws-sdk';
 import { DynamoDBORMRelation } from './dynamodb-orm-relation';
-import QueryInput = DocumentClient.QueryInput;
+import { DynamoDBClient, DescribeTableCommand, TableDescription, QueryCommandInput } from '@aws-sdk/client-dynamodb';
+import { DynamoDBConnection } from './dynamodb-connection';
 
 export abstract class DynamoDBORMBase {
-  public dynamoClient: DocumentClient;
   public tableName: string;
   public tableInfo: TableDescription;
-  private static awsConfig: { [key: string]: any };
-  private static tableInfos: { [tableName: string]: TableDescription };
 
   constructor(tableName: string) {
-    const processEnv = process.env;
-    if (!DynamoDBORMBase.awsConfig) {
-      const defaultConfig: { [key: string]: any } = {
-        region: processEnv.region,
-        accessKeyId: processEnv.accessKeyId,
-        secretAccessKey: processEnv.secretAccessKey,
-      };
-      if (processEnv.endpoint && processEnv.endpoint.length > 0) {
-        defaultConfig.endpoint = new AWS.Endpoint(processEnv.endpoint);
-      }
-      const keys = Object.keys(defaultConfig);
-      for (const key of keys) {
-        if (!defaultConfig[key] || defaultConfig[key].length <= 0) {
-          delete defaultConfig[key];
-        }
-      }
-      DynamoDBORMBase.updateConfig(defaultConfig);
-    }
-    this.dynamoClient = new AWS.DynamoDB.DocumentClient();
     this.tableName = tableName;
-
-    if (!DynamoDBORMBase.tableInfos) {
-      DynamoDBORMBase.tableInfos = {};
-    }
-
-    if (DynamoDBORMBase.tableInfos[tableName]) {
-      this.tableInfo = DynamoDBORMBase.tableInfos[tableName];
-    } else {
-      this.loadTableInfo().then((tableInfo) => {
-        DynamoDBORMBase.tableInfos[this.tableName] = tableInfo;
-      });
-    }
   }
 
   abstract where(filterObject: { [s: string]: any }): DynamoDBORMRelation;
@@ -59,13 +21,13 @@ export abstract class DynamoDBORMBase {
   abstract limit(limitNumaber: number): Promise<{ [s: string]: any }[]>;
 
   protected async loadTableInfo() {
-    const dynamoDB = new AWS.DynamoDB();
-    const tableInfo = await dynamoDB.describeTable({ TableName: this.tableName }).promise();
+    const command = new DescribeTableCommand({ TableName: this.tableName });
+    const tableInfo = await this.getAndaridateDynamoDBClient().send(command);
     this.tableInfo = tableInfo.Table;
     return tableInfo.Table;
   }
 
-  protected async generateFilterQueryExpression(filterObject: { [s: string]: any }): Promise<Partial<QueryInput>> {
+  protected async generateFilterQueryExpression(filterObject: { [s: string]: any }): Promise<Partial<QueryCommandInput>> {
     const attrNames = Object.keys(filterObject);
     const keyConditionExpressionFactors = [];
     const filterExpressionFactors = [];
@@ -101,7 +63,7 @@ export abstract class DynamoDBORMBase {
 
     const keyConditionExpression = keyConditionExpressionFactors.join(' AND ');
     const filterExpression = filterExpressionFactors.join(' AND ');
-    const result: Partial<QueryInput> = {
+    const result: Partial<QueryCommandInput> = {
       KeyConditionExpression: keyConditionExpression,
       ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
@@ -120,29 +82,11 @@ export abstract class DynamoDBORMBase {
     return this.tableInfo.KeySchema.some((schema) => schema.AttributeName === attrName);
   }
 
-  /**
-   * update AWS Config;
-   */
-  static updateConfig(config: ConfigurationOptions & ConfigurationServicePlaceholders & APIVersions & { [key: string]: any }) {
-    const updateConfig = config;
-    if (config.endpoint && config.endpoint instanceof String) {
-      updateConfig.endpoint = new AWS.Endpoint(config.endpoint.toString());
+  protected getAndaridateDynamoDBClient(): DynamoDBClient {
+    const dynamodbClient = DynamoDBConnection.dynamodbClient;
+    if (!dynamodbClient) {
+      throw Error('Please set DynamoDBClientConfig to DynamoDBConnection.confingurations');
     }
-    DynamoDBORMBase.awsConfig = updateConfig;
-    AWS.config.update(updateConfig);
-  }
-
-  /**
-   * clear table caching Memory;
-   */
-  static clearTableCache(): void {
-    DynamoDBORMBase.tableInfos = {};
-  }
-
-  /**
-   * clear aws config in Memory;
-   */
-  static clearConfig(): void {
-    DynamoDBORMBase.awsConfig = {};
+    return dynamodbClient;
   }
 }

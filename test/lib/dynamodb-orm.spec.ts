@@ -1,18 +1,17 @@
 import { DynamoDBORM } from '../../lib';
-
-const AWS = require('aws-sdk');
+import { DynamoDBConnection } from '../../lib/dynamodb-connection';
+import { CreateTableCommand, DeleteTableCommand } from '@aws-sdk/client-dynamodb';
 
 const tableName = 'Music';
 const endpoint = 'http://localhost:8000';
 const region = 'ap-northeast-1';
 
 beforeEach(() => {
-  DynamoDBORM.updateConfig({ region: region, endpoint: endpoint });
+  DynamoDBConnection.confingurations({ region: region, endpoint: endpoint });
 });
 
 afterEach(() => {
-  DynamoDBORM.clearTableCache();
-  DynamoDBORM.clearConfig();
+  DynamoDBConnection.destroy();
 });
 
 describe('DynamoDBORM', () => {
@@ -20,8 +19,8 @@ describe('DynamoDBORM', () => {
     let dynamodbOrm: DynamoDBORM;
 
     beforeEach(async () => {
-      const dynamodb = new AWS.DynamoDB();
-      const params = {
+      const dynamodbClient = DynamoDBConnection.dynamodbClient;
+      const params = new CreateTableCommand({
         AttributeDefinitions: [
           {
             AttributeName: 'Artist',
@@ -47,18 +46,18 @@ describe('DynamoDBORM', () => {
           WriteCapacityUnits: 5,
         },
         TableName: tableName,
-      };
-      await dynamodb.createTable(params).promise();
+      });
+      await dynamodbClient.send(params);
       dynamodbOrm = new DynamoDBORM(tableName);
     });
 
     afterEach(async () => {
-      const dynamodb = new AWS.DynamoDB({ endpoint: new AWS.Endpoint(endpoint) });
-      await dynamodb
-        .deleteTable({
+      const dynamodbClient = DynamoDBConnection.dynamodbClient;
+      await dynamodbClient.send(
+        new DeleteTableCommand({
           TableName: tableName,
-        })
-        .promise();
+        }),
+      );
     });
 
     it('create', async () => {
@@ -205,8 +204,8 @@ describe('DynamoDBORM', () => {
     let dynamodbOrm: DynamoDBORM;
 
     beforeEach(async () => {
-      const dynamodb = new AWS.DynamoDB();
-      const params = {
+      const dynamodbClient = DynamoDBConnection.dynamodbClient;
+      const params = new CreateTableCommand({
         AttributeDefinitions: [
           {
             AttributeName: 'ArtistId',
@@ -232,18 +231,18 @@ describe('DynamoDBORM', () => {
           WriteCapacityUnits: 5,
         },
         TableName: tableName,
-      };
-      await dynamodb.createTable(params).promise();
+      });
+      await dynamodbClient.send(params);
       dynamodbOrm = new DynamoDBORM(tableName);
     });
 
     afterEach(async () => {
-      const dynamodb = new AWS.DynamoDB({ endpoint: new AWS.Endpoint(endpoint) });
-      await dynamodb
-        .deleteTable({
+      const dynamodbClient = DynamoDBConnection.dynamodbClient;
+      await dynamodbClient.send(
+        new DeleteTableCommand({
           TableName: tableName,
-        })
-        .promise();
+        }),
+      );
     });
 
     it('create', async () => {
@@ -426,8 +425,8 @@ describe('DynamoDBORM', () => {
     const secondTableName = 'Shop';
 
     beforeEach(async () => {
-      const dynamodb = new AWS.DynamoDB();
-      const MusicTableParams = {
+      const dynamodbClient = DynamoDBConnection.dynamodbClient;
+      const MusicTableParams = new CreateTableCommand({
         AttributeDefinitions: [
           {
             AttributeName: 'Artist',
@@ -453,10 +452,10 @@ describe('DynamoDBORM', () => {
           WriteCapacityUnits: 5,
         },
         TableName: tableName,
-      };
-      await dynamodb.createTable(MusicTableParams).promise();
+      });
+      await dynamodbClient.send(MusicTableParams);
 
-      const ShopTableParams = {
+      const ShopTableParams = new CreateTableCommand({
         AttributeDefinitions: [
           {
             AttributeName: 'ShopId',
@@ -482,23 +481,23 @@ describe('DynamoDBORM', () => {
           WriteCapacityUnits: 5,
         },
         TableName: secondTableName,
-      };
-      await dynamodb.createTable(ShopTableParams).promise();
+      });
+      await dynamodbClient.send(ShopTableParams);
     });
 
     afterEach(async () => {
-      const dynamodb = new AWS.DynamoDB({ endpoint: new AWS.Endpoint(endpoint) });
-      await dynamodb
-        .deleteTable({
+      const dynamodbClient = DynamoDBConnection.dynamodbClient;
+      await dynamodbClient.send(
+        new DeleteTableCommand({
           TableName: tableName,
-        })
-        .promise();
+        }),
+      );
 
-      await dynamodb
-        .deleteTable({
+      await dynamodbClient.send(
+        new DeleteTableCommand({
           TableName: secondTableName,
-        })
-        .promise();
+        }),
+      );
     });
 
     describe('sameTables', () => {

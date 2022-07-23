@@ -1,19 +1,18 @@
 import { DynamoDBORM } from '../../lib';
 import { DynamoDBORMRelation } from '../../lib/dynamodb-orm-relation';
-
-const AWS = require('aws-sdk');
+import { DynamoDBConnection } from '../../lib/dynamodb-connection';
+import { CreateTableCommand, DeleteTableCommand } from '@aws-sdk/client-dynamodb';
 
 const tableName = 'Music';
 const endpoint = 'http://localhost:8000';
 const region = 'ap-northeast-1';
 
 beforeEach(() => {
-  DynamoDBORM.updateConfig({ region: region, endpoint: endpoint });
+  DynamoDBConnection.confingurations({ region: region, endpoint: endpoint });
 });
 
 afterEach(() => {
-  DynamoDBORM.clearTableCache();
-  DynamoDBORM.clearConfig();
+  DynamoDBConnection.destroy();
 });
 
 describe('DynamoDBORM', () => {
@@ -22,8 +21,8 @@ describe('DynamoDBORM', () => {
     let dynamodbOrmRelation: DynamoDBORMRelation;
 
     beforeEach(async () => {
-      const dynamodb = new AWS.DynamoDB();
-      const params = {
+      const dynamodbClient = DynamoDBConnection.dynamodbClient;
+      const params = new CreateTableCommand({
         AttributeDefinitions: [
           {
             AttributeName: 'Artist',
@@ -49,19 +48,19 @@ describe('DynamoDBORM', () => {
           WriteCapacityUnits: 5,
         },
         TableName: tableName,
-      };
-      await dynamodb.createTable(params).promise();
+      });
+      await dynamodbClient.send(params);
       dynamodbOrm = new DynamoDBORM(tableName);
       dynamodbOrmRelation = new DynamoDBORMRelation(tableName);
     });
 
     afterEach(async () => {
-      const dynamodb = new AWS.DynamoDB({ endpoint: new AWS.Endpoint(endpoint) });
-      await dynamodb
-        .deleteTable({
+      const dynamodbClient = DynamoDBConnection.dynamodbClient;
+      await dynamodbClient.send(
+        new DeleteTableCommand({
           TableName: tableName,
-        })
-        .promise();
+        }),
+      );
     });
 
     it('where', async () => {
@@ -69,6 +68,7 @@ describe('DynamoDBORM', () => {
         { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle1' },
         { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle2' },
       ]);
+
       expect(await dynamodbOrmRelation.where({ Artist: 'sampleArtist' }).load()).toEqual([
         { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle1' },
         { Artist: 'sampleArtist', SongTitle: 'sampleSongTitle2' },

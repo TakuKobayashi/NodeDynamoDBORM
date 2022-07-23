@@ -1,12 +1,9 @@
 import { DynamoDBORMBase } from './dynamodb-orm-base';
-import { QueryInput } from 'aws-sdk/clients/dynamodb';
-import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client';
-import ScanOutput = DocumentClient.ScanOutput;
-import QueryOutput = DocumentClient.QueryOutput;
+import { QueryCommand, QueryCommandInput, QueryCommandOutput, ScanCommand, ScanCommandOutput } from '@aws-sdk/client-dynamodb';
 
 export class DynamoDBORMRelation extends DynamoDBORMBase {
   private filterObject: { [s: string]: any };
-  private queryParams: QueryInput;
+  private queryParams: QueryCommandInput;
 
   constructor(tableName: string) {
     super(tableName);
@@ -71,12 +68,14 @@ export class DynamoDBORMRelation extends DynamoDBORMBase {
     return queryResult.Items as { [s: string]: any }[];
   }
 
-  private async executeQuery(): Promise<QueryOutput | ScanOutput> {
+  private async executeQuery(): Promise<QueryCommandOutput | ScanCommandOutput> {
     if (this.filterObject && Object.keys(this.filterObject).length > 0) {
       const filterQueryExpressions = await this.generateFilterQueryExpression(this.filterObject);
-      return this.dynamoClient.query({ ...this.queryParams, ...filterQueryExpressions }).promise();
+      const command = new QueryCommand({ ...this.queryParams, ...filterQueryExpressions });
+      return this.getAndaridateDynamoDBClient().send(command);
     } else {
-      return this.dynamoClient.scan(this.queryParams).promise();
+      const command = new ScanCommand({ ...this.queryParams });
+      return this.getAndaridateDynamoDBClient().send(command);
     }
   }
 }

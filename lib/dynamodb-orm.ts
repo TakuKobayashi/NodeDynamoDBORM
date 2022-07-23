@@ -1,6 +1,18 @@
 import { DynamoDBORMRelation } from './dynamodb-orm-relation';
 import { DynamoDBORMBase } from './dynamodb-orm-base';
 import { TransactionWriterStates } from './dynamodb-transaction-states';
+import {
+  DeleteItemCommand,
+  GetItemCommand,
+  PutItemCommand,
+  QueryCommand,
+  ScanCommand,
+  UpdateItemCommand,
+  BatchWriteItemCommand,
+  WriteRequest,
+  BatchWriteItemCommandOutput,
+  TransactWriteItemsCommand,
+} from '@aws-sdk/client-dynamodb';
 
 export class DynamoDBORM extends DynamoDBORMBase {
   private static transactionWriterStates: TransactionWriterStates = {
@@ -28,12 +40,12 @@ export class DynamoDBORM extends DynamoDBORMBase {
    * @return {object} dynamodb table a row object
    */
   async findBy(filterObject: { [s: string]: any }): Promise<{ [s: string]: any }> {
-    const params = {
+    const command = new GetItemCommand({
       TableName: this.tableName,
       Key: filterObject,
-    };
-    const result = await this.dynamoClient.get(params).promise();
-    return result.Item as { [s: string]: any };
+    });
+    const result = await this.getAndaridateDynamoDBClient().send(command);
+    return result.Item;
   }
 
   /**
@@ -43,12 +55,12 @@ export class DynamoDBORM extends DynamoDBORMBase {
    */
   async findByAll(filterObject: { [s: string]: any }): Promise<{ [s: string]: any }[]> {
     const filterQueryExpressions = await this.generateFilterQueryExpression(filterObject);
-    const params = {
+    const command = new QueryCommand({
       TableName: this.tableName,
       ...filterQueryExpressions,
-    };
-    const queryResult = await this.dynamoClient.query(params).promise();
-    return queryResult.Items as { [s: string]: any }[];
+    });
+    const queryResult = await this.getAndaridateDynamoDBClient().send(command);
+    return queryResult.Items;
   }
 
   /**
@@ -69,7 +81,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
       }
       updateExpressionAttributeValues[praceholder] = updateObject[keys[i]];
     }
-    const params = {
+    const commandInput = {
       TableName: this.tableName,
       Key: filterObject,
       UpdateExpression: updateExpressionString,
@@ -77,11 +89,11 @@ export class DynamoDBORM extends DynamoDBORMBase {
       ReturnValues: 'ALL_NEW',
     };
     if (DynamoDBORM.transactionWriterStates.isInnerTransaction) {
-      DynamoDBORM.transactionWriterStates.writerItems.push({ Update: params });
+      DynamoDBORM.transactionWriterStates.writerItems.push({ Update: commandInput });
       return updateObject;
     } else {
-      const updateResult = await this.dynamoClient.update(params).promise();
-      return updateResult.Attributes as { [s: string]: any };
+      const updateResult = await this.getAndaridateDynamoDBClient().send(new UpdateItemCommand(commandInput));
+      return updateResult.Attributes;
     }
   }
 
@@ -91,16 +103,16 @@ export class DynamoDBORM extends DynamoDBORMBase {
    * @return {object} created object
    */
   async create(putObject: { [s: string]: any }): Promise<{ [s: string]: any }> {
-    const params = {
+    const commandInput = {
       TableName: this.tableName,
       Item: putObject,
       ReturnValues: 'ALL_OLD',
     };
     if (DynamoDBORM.transactionWriterStates.isInnerTransaction) {
-      DynamoDBORM.transactionWriterStates.writerItems.push({ Put: params });
+      DynamoDBORM.transactionWriterStates.writerItems.push({ Put: commandInput });
       return putObject;
     } else {
-      const createResult = await this.dynamoClient.put(params).promise();
+      const createResult = await this.getAndaridateDynamoDBClient().send(new PutItemCommand(commandInput));
       return { ...createResult.Attributes, ...putObject };
     }
   }
@@ -111,19 +123,18 @@ export class DynamoDBORM extends DynamoDBORMBase {
    * @return {boolean} delete success or not
    */
   async delete(filterObject: { [s: string]: any }): Promise<boolean> {
-    const params = {
+    const commandInput = {
       TableName: this.tableName,
       Key: filterObject,
       ReturnValues: 'ALL_OLD',
     };
     if (DynamoDBORM.transactionWriterStates.isInnerTransaction) {
-      DynamoDBORM.transactionWriterStates.writerItems.push({ Delete: params });
+      DynamoDBORM.transactionWriterStates.writerItems.push({ Delete: commandInput });
       return true;
     } else {
       let isSuccess = true;
-      await this.dynamoClient
-        .delete(params)
-        .promise()
+      await this.getAndaridateDynamoDBClient()
+        .send(new DeleteItemCommand(commandInput))
         .catch((error) => (isSuccess = false));
       return isSuccess;
     }
@@ -133,9 +144,10 @@ export class DynamoDBORM extends DynamoDBORMBase {
    * get all tables data.
    * @return {array[object]} all of table data.
    */
-  async all(): Promise<{ [s: string]: any }> {
-    const scanResult = await this.dynamoClient.scan({ TableName: this.tableName }).promise();
-    return scanResult.Items as { [s: string]: any }[];
+  async all(): Promise<{ [s: string]: any }[]> {
+    const command = new ScanCommand({ TableName: this.tableName });
+    const scanResult = await this.getAndaridateDynamoDBClient().send(command);
+    return scanResult.Items;
   }
 
   /**
@@ -162,7 +174,8 @@ export class DynamoDBORM extends DynamoDBORMBase {
    * @return {array[object]} row table data
    */
   async limit(limitNumaber: number): Promise<{ [s: string]: any }[]> {
-    const scanResult = await this.dynamoClient.scan({ TableName: this.tableName, Limit: limitNumaber }).promise();
+    const command = new ScanCommand({ TableName: this.tableName, Limit: limitNumaber });
+    const scanResult = await this.getAndaridateDynamoDBClient().send(command);
     return scanResult.Items as { [s: string]: any }[];
   }
 
@@ -171,7 +184,8 @@ export class DynamoDBORM extends DynamoDBORMBase {
    * @return {number} all of table data count.
    */
   async count(): Promise<number> {
-    const scanResult = await this.dynamoClient.scan({ TableName: this.tableName, Select: 'COUNT' }).promise();
+    const command = new ScanCommand({ TableName: this.tableName, Select: 'COUNT' });
+    const scanResult = await this.getAndaridateDynamoDBClient().send(command);
     return scanResult.Count;
   }
 
@@ -189,41 +203,43 @@ export class DynamoDBORM extends DynamoDBORMBase {
    * @param {array[object]} putObjects are objects will insert to dynamodb.
    * @return {array} UnprocessedItems
    */
-  async import(putObjects: { [s: string]: any }[]): Promise<any> {
-    const importItems = {};
-    importItems[this.tableName] = putObjects.map((putObject) => {
-      return {
+  async import(putObjects: { [s: string]: any }[]): Promise<BatchWriteItemCommandOutput> {
+    const requests: WriteRequest[] = [];
+    for (const putObject of putObjects) {
+      requests.push({
         PutRequest: {
           Item: putObject,
         },
-      };
+      });
+    }
+    const importItems: Record<string, WriteRequest[]> = {};
+    importItems[this.tableName] = requests;
+    const command = new BatchWriteItemCommand({
+      RequestItems: importItems,
     });
-    return await this.dynamoClient
-      .batchWrite({
-        RequestItems: importItems,
-      })
-      .promise();
+    return this.getAndaridateDynamoDBClient().send(command);
   }
 
   /**
    * delete data from table
-   * @param {array[object]} filterObjects are objects will delete rows primary key and value sets.
+   * @param {array[object]} deleteObjects are objects will delete rows primary key and value sets.
    * @return {array} UnprocessedItems
    */
-  async deleteAll(filterObjects: { [s: string]: any }[]): Promise<any> {
-    const importItems = {};
-    importItems[this.tableName] = filterObjects.map((filterObject) => {
-      return {
+  async deleteAll(deleteObjects: { [s: string]: any }[]): Promise<any> {
+    const requests: WriteRequest[] = [];
+    for (const deleteObject of deleteObjects) {
+      requests.push({
         DeleteRequest: {
-          Key: filterObject,
+          Key: deleteObject,
         },
-      };
+      });
+    }
+    const importItems = {};
+    importItems[this.tableName] = requests;
+    const command = new BatchWriteItemCommand({
+      RequestItems: importItems,
     });
-    return await this.dynamoClient
-      .batchWrite({
-        RequestItems: importItems,
-      })
-      .promise();
+    return await this.getAndaridateDynamoDBClient().send(command);
   }
 
   /**
@@ -233,9 +249,11 @@ export class DynamoDBORM extends DynamoDBORMBase {
   async transaction(inTransaction: () => Promise<void>): Promise<any> {
     DynamoDBORM.transactionWriterStates.isInnerTransaction = true;
     await inTransaction();
-    return await this.dynamoClient
-      .transactWrite({ TransactItems: DynamoDBORM.transactionWriterStates.writerItems })
-      .promise()
+    const command = new TransactWriteItemsCommand({
+      TransactItems: DynamoDBORM.transactionWriterStates.writerItems,
+    });
+    return this.getAndaridateDynamoDBClient()
+      .send(command)
       .finally(() => {
         DynamoDBORM.clearTransactionState();
       });
@@ -248,6 +266,9 @@ export class DynamoDBORM extends DynamoDBORMBase {
   static async transaction(inTransaction: () => Promise<void>): Promise<any> {
     DynamoDBORM.transactionWriterStates.isInnerTransaction = true;
     await inTransaction();
+    const command = new TransactWriteItemsCommand({
+      TransactItems: DynamoDBORM.transactionWriterStates.writerItems,
+    });
     let result: any;
     if (DynamoDBORM.transactionWriterStates.writerItems.length > 0) {
       const firstItem = DynamoDBORM.transactionWriterStates.writerItems[0];
@@ -259,7 +280,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
       } else if (firstItem.Delete) {
         dynamodbOrm = new DynamoDBORM(firstItem.Delete.TableName);
       }
-      result = await dynamodbOrm.dynamoClient.transactWrite({ TransactItems: DynamoDBORM.transactionWriterStates.writerItems }).promise();
+      result = await dynamodbOrm.getAndaridateDynamoDBClient().send(command);
     }
     DynamoDBORM.clearTransactionState();
     return result;
