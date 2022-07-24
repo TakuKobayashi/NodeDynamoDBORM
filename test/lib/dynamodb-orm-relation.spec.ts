@@ -7,11 +7,11 @@ const tableName = 'Music';
 const endpoint = 'http://localhost:8000';
 const region = 'ap-northeast-1';
 
-beforeEach(() => {
+beforeAll(() => {
   DynamoDBConnection.confingurations({ region: region, endpoint: endpoint });
 });
 
-afterEach(() => {
+afterAll(() => {
   DynamoDBConnection.destroy();
 });
 
