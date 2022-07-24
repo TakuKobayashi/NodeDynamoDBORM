@@ -1,6 +1,7 @@
 import { DynamoDBORMRelation } from './dynamodb-orm-relation';
 import { DynamoDBClient, DescribeTableCommand, TableDescription, QueryCommandInput } from '@aws-sdk/client-dynamodb';
 import { DynamoDBConnection } from './dynamodb-connection';
+import { convertObjectToRecordStringValue } from './dynamodb-attribute-value-converter';
 
 export abstract class DynamoDBORMBase {
   public tableName: string;
@@ -66,7 +67,7 @@ export abstract class DynamoDBORMBase {
     const result: Partial<QueryCommandInput> = {
       KeyConditionExpression: keyConditionExpression,
       ExpressionAttributeNames: expressionAttributeNames,
-      ExpressionAttributeValues: expressionAttributeValues,
+      ExpressionAttributeValues: convertObjectToRecordStringValue(expressionAttributeValues),
     };
     if (filterExpression.length > 0) {
       result.FilterExpression = filterExpression;

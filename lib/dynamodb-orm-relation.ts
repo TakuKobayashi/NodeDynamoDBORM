@@ -1,5 +1,6 @@
 import { DynamoDBORMBase } from './dynamodb-orm-base';
 import { QueryCommand, QueryCommandInput, QueryCommandOutput, ScanCommand, ScanCommandOutput } from '@aws-sdk/client-dynamodb';
+import { convertObjectToRecordStringValue, convertRecordStringValueToValue } from './dynamodb-attribute-value-converter';
 
 export class DynamoDBORMRelation extends DynamoDBORMBase {
   private filterObject: { [s: string]: any };
@@ -28,13 +29,13 @@ export class DynamoDBORMRelation extends DynamoDBORMBase {
    * @return {array[object]} all of table data.
    */
   offset(offsetStart: { [s: string]: any }): DynamoDBORMRelation {
-    this.queryParams.ExclusiveStartKey = offsetStart;
+    this.queryParams.ExclusiveStartKey = convertObjectToRecordStringValue(offsetStart);
     return this;
   }
 
   async load(): Promise<{ [s: string]: any }[]> {
     const queryResult = await this.executeQuery();
-    return queryResult.Items as { [s: string]: any }[];
+    return queryResult.Items.map((item) => convertRecordStringValueToValue(item));
   }
 
   /**
@@ -65,7 +66,7 @@ export class DynamoDBORMRelation extends DynamoDBORMBase {
   async limit(limitNumaber: number): Promise<{ [s: string]: any }[]> {
     this.queryParams.Limit = limitNumaber;
     const queryResult = await this.executeQuery();
-    return queryResult.Items as { [s: string]: any }[];
+    return queryResult.Items.map((item) => convertRecordStringValueToValue(item));
   }
 
   private async executeQuery(): Promise<QueryCommandOutput | ScanCommandOutput> {

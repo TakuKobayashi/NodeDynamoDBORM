@@ -13,7 +13,7 @@ import {
   BatchWriteItemCommandOutput,
   TransactWriteItemsCommand,
 } from '@aws-sdk/client-dynamodb';
-
+import { convertObjectToRecordStringValue, convertRecordStringValueToValue } from './dynamodb-attribute-value-converter';
 export class DynamoDBORM extends DynamoDBORMBase {
   private static transactionWriterStates: TransactionWriterStates = {
     isInnerTransaction: false,
@@ -42,10 +42,10 @@ export class DynamoDBORM extends DynamoDBORMBase {
   async findBy(filterObject: { [s: string]: any }): Promise<{ [s: string]: any }> {
     const command = new GetItemCommand({
       TableName: this.tableName,
-      Key: filterObject,
+      Key: convertObjectToRecordStringValue(filterObject),
     });
     const result = await this.getAndaridateDynamoDBClient().send(command);
-    return result.Item;
+    return convertRecordStringValueToValue(result.Item);
   }
 
   /**
@@ -60,7 +60,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
       ...filterQueryExpressions,
     });
     const queryResult = await this.getAndaridateDynamoDBClient().send(command);
-    return queryResult.Items;
+    return queryResult.Items.map((item) => convertRecordStringValueToValue(item));
   }
 
   /**
@@ -83,7 +83,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
     }
     const commandInput = {
       TableName: this.tableName,
-      Key: filterObject,
+      Key: convertObjectToRecordStringValue(filterObject),
       UpdateExpression: updateExpressionString,
       ExpressionAttributeValues: updateExpressionAttributeValues,
       ReturnValues: 'ALL_NEW',
@@ -105,7 +105,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
   async create(putObject: { [s: string]: any }): Promise<{ [s: string]: any }> {
     const commandInput = {
       TableName: this.tableName,
-      Item: putObject,
+      Item: convertObjectToRecordStringValue(putObject),
       ReturnValues: 'ALL_OLD',
     };
     if (DynamoDBORM.transactionWriterStates.isInnerTransaction) {
@@ -125,7 +125,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
   async delete(filterObject: { [s: string]: any }): Promise<boolean> {
     const commandInput = {
       TableName: this.tableName,
-      Key: filterObject,
+      Key: convertObjectToRecordStringValue(filterObject),
       ReturnValues: 'ALL_OLD',
     };
     if (DynamoDBORM.transactionWriterStates.isInnerTransaction) {
@@ -147,7 +147,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
   async all(): Promise<{ [s: string]: any }[]> {
     const command = new ScanCommand({ TableName: this.tableName });
     const scanResult = await this.getAndaridateDynamoDBClient().send(command);
-    return scanResult.Items;
+    return scanResult.Items.map((item) => convertRecordStringValueToValue(item));
   }
 
   /**
@@ -176,7 +176,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
   async limit(limitNumaber: number): Promise<{ [s: string]: any }[]> {
     const command = new ScanCommand({ TableName: this.tableName, Limit: limitNumaber });
     const scanResult = await this.getAndaridateDynamoDBClient().send(command);
-    return scanResult.Items as { [s: string]: any }[];
+    return scanResult.Items.map((item) => convertRecordStringValueToValue(item));
   }
 
   /**
@@ -208,7 +208,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
     for (const putObject of putObjects) {
       requests.push({
         PutRequest: {
-          Item: putObject,
+          Item: convertObjectToRecordStringValue(putObject),
         },
       });
     }
@@ -230,7 +230,7 @@ export class DynamoDBORM extends DynamoDBORMBase {
     for (const deleteObject of deleteObjects) {
       requests.push({
         DeleteRequest: {
-          Key: deleteObject,
+          Key: convertObjectToRecordStringValue(deleteObject),
         },
       });
     }
