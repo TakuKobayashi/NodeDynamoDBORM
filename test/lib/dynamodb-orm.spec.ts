@@ -1,6 +1,7 @@
 import { DynamoDBORM } from '../../lib';
 import { DynamoDBConnection } from '../../lib/dynamodb-connection';
 import { CreateTableCommand, DeleteTableCommand } from '@aws-sdk/client-dynamodb';
+import { describe, beforeAll, afterAll, beforeEach, afterEach, expect, it } from '@jest/globals';
 
 const tableName = 'Music';
 const endpoint = 'http://localhost:8000';
